@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "kubeUp.managerName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kubeUp.managerLabels" . | nindent 4 }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "kubeUp.managerSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "kubeUp.managerLabels" . | nindent 8 }}
+{{- if .Values.manager.deployment.annotations -}}
+      annotations:
+{{- with .Values.manager.deployment.annotations }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- end }}
+    spec:
+      serviceAccountName: {{ template "kubeUp.managerName" . }}
+      containers:
+        - name: {{ template "kubeUp.managerName" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: {{ template "portNames.metrics" . }}
+              protocol: {{ .Values.manager.deployment.protocol }}
+              containerPort: {{ .Values.manager.deployment.metricsPort }}
+            - name: {{ template "portNames.health" . }}
+              protocol: {{ .Values.manager.deployment.protocol }}
+              containerPort: {{ .Values.manager.deployment.healthPort }}
+          resources:
+{{- with .Values.manager.resources }}
+{{ toYaml . | indent 12 }}
+{{- end }}
+          env:
+            - name: NAMESPACE
+              value: {{ .Release.Namespace | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.manager.config.logging.level | quote }}
+            - name: KOPF_WORKER_LIMIT
+              value: {{ .Values.manager.config.workerLimit | quote }}
+{{- with .Values.manager.deployment.extraEnv }}
+{{ toYaml . | indent 12 }}
+{{- end }}
+          command:
+            - sh
+          args:
+            - "-c"
+            - "kopf run --liveness=http://0.0.0.0:{{ .Values.manager.deployment.healthPort }}{{ template "probes.endpoint" . }} app/handlers.py -n ${NAMESPACE}"
+          livenessProbe:
+            httpGet:
+              path: {{ template "probes.endpoint" . }}
+              port: {{ template "portNames.health" . }}
+            initialDelaySeconds: 2
+            timeoutSeconds: 5
+            periodSeconds: 15
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - "/bin/sh"
+                  - "-c"
+                  - "sleep 15"
+      restartPolicy: Always
+      nodeSelector:
+{{- with .Values.manager.nodeSelector }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+      affinity:
+{{- with .Values.manager.affinity }}
+{{ toYaml . | indent 8 }}
+{{- end }}
+      tolerations:
+{{- with .Values.manager.tolerations }}
+{{ toYaml . | indent 8 }}
+{{- end }}

@@ -1,0 +1,108 @@
+apiVersion: skaffold/v4beta13
+kind: Config
+metadata:
+    name: kube-up
+build:
+  local:
+    useBuildkit: true
+  artifacts:
+    - image: kube_up
+      context: ..
+      docker:
+        network: host
+      sync:
+        infer:
+          - "*.py"
+
+deploy:
+  helm:
+    releases:
+      - name: kube-prometheus-stack
+        remoteChart: prometheus-community/kube-prometheus-stack
+        namespace: monitoring
+        createNamespace: true
+        setValueTemplates:
+          defaultRules:
+            create: true
+            rules:
+              etcd: false
+              kubeScheduler: false
+          alertmanager:
+            enabled: false
+          grafana:
+            enabled: false
+          kubeControllerManager:
+            enabled: false
+          kubeEtcd:
+            enabled: false
+          kubeScheduler:
+            enabled: false
+          prometheus:
+            prometheusSpec:
+              serviceMonitorSelectorNilUsesHelmValues: false
+
+      - name: kube-up
+        chartPath: ../charts/kube-up
+        namespace: kube-up
+        createNamespace: true
+        setValueTemplates:
+          image:
+            repository: "{{.IMAGE_REPO_kube_up}}"
+            tag: "{{.IMAGE_TAG_kube_up}}@{{.IMAGE_DIGEST_kube_up}}"
+        setValues:
+          api:
+            config:
+              logging:
+                level: debug
+              extraMetricsLabels:
+                - owner
+                - service
+                - severity
+          manager:
+            config:
+              logging:
+                level: debug
+          serviceMonitors:
+            enabled: true
+
+manifests:
+   rawYaml:
+      - test-check.yaml
+
+resourceSelector:
+  allow:
+    - groupKind: KubeUpCheck.pitchbook.com
+      image: [".*"]
+      labels: [".*"]
+
+portForward:
+  - resourceType: service
+    resourceName: kube-prometheus-stack-prometheus
+    namespace: monitoring
+    port: 9090
+    localPort: 9090
+  - resourceType: service
+    resourceName: kube-up-api
+    namespace: kube-up
+    port: 80
+    localPort: 8080
+  - resourceType: service
+    resourceName: kube-up-manager
+    namespace: kube-up
+    port: 80
+    localPort: 8081
+
+profiles:
+  - name: ci
+    patches:
+      # Disable Prometheus CRDs
+      - op: replace
+        path: /deploy/helm/releases/1/setValues
+        value:
+          serviceMonitors.enabled: false
+      # Skip kube-prometheus-stack
+      - op: remove
+        path: /deploy/helm/releases/0
+      # Skip Prometheus port forward
+      - op: remove
+        path: /portForward/0

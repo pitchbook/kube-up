@@ -1,0 +1,128 @@
+[project]
+name = "kube-up"
+version = "1.0.0"
+description = "Kubernetes operator for managing synthetic tests"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "John Riebold", email = "john.riebold@pitchbook.com" }]
+requires-python = "==3.14.*"
+dependencies = [
+    "fastapi[standard-no-fastapi-cloud-cli]==0.132.0",
+    "kopf[uvloop]==1.44.5",
+    "kubernetes-asyncio==34.3.3",
+    "orjson==3.11.5",
+    "prometheus-client==0.24.1",
+    "pydantic==2.12.5",
+    "pydantic-settings==2.12.0",
+    "python-json-logger==4.0.0",
+    "pyyaml==6.0.3",
+    "structlog==25.5.0",
+    "uvicorn[standard]==0.40.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest-cov==6.1.1",
+    "pytest==8.3.5",
+    "ruff>=0.9.0,<1.0.0",
+    "uv-sort>=0.4.0",
+    "ty==0.0.14",
+    "uv-sort==0.4.0",
+]
+
+[tool.uv]
+package = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app"]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--cov=app.api.labels",
+    "--cov=app.common.timestrs",
+    "--cov=app.operator.templates.utils",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 120
+lint.ignore = [
+    "ARG001",  # Unused function argument: `{name}`
+    "B008",    # function-call-in-default-argument (B008)
+    "BLE001",  # Do not catch blind exception: `{name}`
+    "C901",    # Too complex
+    "E501",    # Checks for lines that exceed the specified maximum character length.
+    "ISC001",  # single-line-implicit-string-concatenation
+    "N812",    # Lowercase `datetime` imported as non-lowercase `Datetime`
+    "N818",    # Exception name should be named with an Error suffix
+    "PLR0912", # Too many branches
+    "PLR0913", # Too many arguments in function definition
+    "PLR0915", # Too many statements
+    "PLR1704", # Redefining argument with the local name `{name}`
+    "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
+    "PLW2901", # redefined-loop-name
+    "Q003",    # Change outer quotes to avoid escaping inner quotes
+    "RET503",  # Missing explicit `return` at the end of function able to return non-`None` value
+    "RET504",  # Unnecessary variable assignment before `return` statement
+    "RUF013",  # PEP 484 prohibits implicit `Optional`
+    "S101",    # Use of `assert` detected
+    "S104",    # Possible binding to all interfaces
+    "S105",    # Possible hardcoded password
+    "S311",    # Standard pseudo-random generators are not suitable for cryptographic purposes
+    "SIM102",  # Use a single `if` statement instead of nested `if` statements
+    "SIM108",  # Use ternary operator instead of `if`-`else`-block
+]
+lint.select = [
+    "A",   # flake8-builtins
+    "ARG", # flake8-unused-arguments
+    "B",   # flake8-bugbear
+    "BLE", # flake8-blind-except
+    "C4",  # flake8-comprehensions
+    "C90", # mccabe
+    "E",   # pycodestyle
+    "ERA", # eradicate
+    "F",   # Pyflakes
+    "I",   # isort
+    "ICN", # flake8-import-conventions
+    "ISC", # flake8-implicit-str-concat
+    "N",   # pep8-naming
+    "NPY", # NumPy-specific rules
+    "PIE", # flake8-pie
+    "PL",  # Pylint
+    "PLE", # Pylint
+    "PLR", # Pylint
+    "PLW", # Pylint
+    "PT",  # flake8-pytest-style
+    "RET", # flake8-return
+    "RUF", # Ruff-specific rules
+    "S",   # flake8-bandit
+    "SIM", # flake8-simplify
+    "T20", # flake8-print
+    "TCH", # flake8-type-checking
+    "UP",  # pyupgrade
+    "W",   # pycodestyle
+]
+exclude = [".git", ".github", ".venv"]
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = [
+    "app.models._base.AsyncAPIModel",
+    "app.models._base.KubeUpBase",
+]
+runtime-evaluated-decorators = [
+    "contextlib.asynccontextmanager",
+    "fastapi.APIRouter.delete",
+    "fastapi.APIRouter.get",
+    "fastapi.APIRouter.patch",
+    "fastapi.APIRouter.post",
+    "fastapi.APIRouter.put",
+    "pytest.mark.asyncio",
+]
+
+[tool.ruff.format]
+line-ending = "lf"
+
+[tool.ty.src]
+exclude = ["app/tests/*"]

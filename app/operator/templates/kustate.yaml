@@ -1,0 +1,14 @@
+apiVersion: pitchbook.com/v1
+kind: KubeUpState
+metadata:
+  name: null
+  namespace: null
+  labels:
+    app.kubernetes.io/managed-by: kube-up
+spec:
+  ok: false
+  errors: []
+  lastRun: null
+  runDuration: null
+  authoritativePod: null
+  customMetrics: []
