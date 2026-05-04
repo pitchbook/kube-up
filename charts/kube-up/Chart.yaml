@@ -1,0 +1,8 @@
+apiVersion: v2
+name: kube-up
+version: 1.0.0
+description: Helm chart for Kube Up
+maintainers:
+  - name: John Riebold
+    email: john.riebold@pitchbook.com
+appVersion: 1.0.0

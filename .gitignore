@@ -1,0 +1,23 @@
+# IDE
+.vscode
+.idea/
+
+# Cache
+*__pycache__/
+.cache/
+*.pyc
+.DS_Store
+
+# Test files
+.coverage
+coverage-reports/
+.pytest_cache/
+htmlcov/
+app/tests/load/*.csv
+*.xml
+
+# Setuptools folders
+*.egg-info/
+
+# Virtualenv
+.venv/

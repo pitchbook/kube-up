@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "kubeUp.apiName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kubeUp.apiLabels" . | nindent 4 }}
+  annotations:
+{{- with .Values.api.service.annotations }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  type: {{ .Values.api.service.type }}
+  ports:
+    - name: {{ template "portNames.service" . }}
+      port: {{ .Values.api.service.port }}
+      protocol: {{ .Values.api.deployment.protocol }}
+      targetPort: {{ template "portNames.container" . }}
+  selector:
+    {{- include "kubeUp.apiSelectorLabels" . | nindent 4 }}

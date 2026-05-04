@@ -1,0 +1,30 @@
+{{- if .Values.serviceMonitors.enabled -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ template "kubeUp.managerName" . }}
+  namespace: {{ .Values.serviceMonitors.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "kubeUp.managerLabels" . | nindent 4 }}
+{{- with .Values.serviceMonitors.labels }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- if .Values.serviceMonitors.annotations -}}
+    annotations:
+{{- with .Values.serviceMonitors.annotations }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- end }}
+spec:
+  endpoints:
+    - path: /metrics
+      port: {{ template "portNames.service" . }}
+      interval: {{ .Values.serviceMonitors.interval }}
+      honorLabels: true
+  selector:
+    matchLabels:
+      {{- include "kubeUp.managerSelectorLabels" . | nindent 6 }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+{{- end }}

@@ -1,0 +1,10 @@
+# IDE
+.vscode
+.idea/
+
+# Cache
+.DS_Store
+
+# helm/charts
+*.tgz
+.helmignore

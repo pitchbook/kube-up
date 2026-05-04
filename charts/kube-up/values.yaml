@@ -1,0 +1,88 @@
+image:
+  repository: ghcr.io/pitchbook/kube-up
+  tag: v1.0.0
+
+manager:
+  config:
+    # Kopf worker limit
+    workerLimit: 20
+
+    logging:
+      level: info
+
+  resources:
+    requests:
+      memory: 128Mi
+    limits:
+      memory: 128Mi
+
+  deployment:
+    metricsPort: 8080
+    healthPort: 9000
+    protocol: TCP
+    extraEnv: []
+    annotations: {}
+
+  serviceAccount:
+    annotations: {}
+
+  service:
+    type: ClusterIP
+    metricsPort: 80
+    healthPort: 9000
+
+api:
+  config:
+    # Extra labels to add to all emitted metrics
+    extraMetricsLabels: []
+      # - owner
+      # - service
+      # - severity
+
+    logging:
+      level: info
+
+  resources:
+    requests:
+      memory: 128Mi
+    limits:
+      memory: 128Mi
+
+  deployment:
+    replicas: 1
+    port: 8080
+    protocol: TCP
+    extraEnv: []
+    annotations: {}
+
+  serviceAccount:
+    annotations: {}
+
+  pdb:
+    enabled: false
+    minAvailable: 1
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      # - host: kube-up.pitchbook.com
+      #   paths:
+      #     - path: /
+      #       pathType: ImplementationSpecific
+    tls: []
+      # - secretName: kube-up-tls
+      #   hosts:
+      #     - kube-up.pitchbook.com
+
+serviceMonitors:
+  enabled: true
+  namespace: ""
+  interval: 15s
+  labels: {}
+  annotations: {}

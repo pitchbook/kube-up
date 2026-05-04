@@ -1,0 +1,31 @@
+# Git
+.git/
+
+# IDE
+.vscode
+.idea/
+
+# Cache
+*__pycache__/
+.cache/
+*.pyc
+.DS_Store
+
+# Test files
+app/tests/
+.coverage
+coverage-reports/
+.pytest_cache/
+htmlcov/
+*.xml
+
+# Setuptools folders
+*.egg-info/
+
+# Virtualenv
+.venv/
+
+# App-specific
+charts/
+documentation/images/
+testing/

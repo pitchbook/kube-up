@@ -1,0 +1,38 @@
+apiVersion: pitchbook.com/v1
+kind: KubeUpCheck
+metadata:
+  name: example-check
+  namespace: kube-up
+spec:
+  # How often the check should run, converted to crontab by Manager
+  runInterval: 1m
+  # Maximum time the check is allowed to run before being considered failed
+  timeout: 30s
+  # Extra labels that will be appended to metrics
+  extraLabels:
+    owner: my-team
+    service: example-service
+    severity: "2"
+  # Pod spec that will be run.  All normal pod spec is valid here.
+  podSpec:
+    containers:
+      - name: curl-check
+        image: curlimages/curl:latest
+        command:
+          - /bin/sh
+          - -c
+          - |
+            # Perform health check
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://httpbin.org/status/200)
+            if [ "${STATUS}" = "200" ]; then
+              ok="true"
+            else
+              ok="false"
+            fi
+
+            # Report results
+            curl -X POST ${KU_API_URL} \
+              -H "Content-Type: application/json" \
+              -d "{\"podName\": \"${HOSTNAME}\", \"ok\": ${ok}, \"errors\": [], \"custom_metrics\": [{\"name\": \"someMetric\", \"value\": 1, \"labels\": [{\"name\": \"service\", \"value\": \"foo\"}]}, {\"name\": \"someMetric\", \"value\": 0, \"labels\": [{\"name\":\"service\", \"value\":\"bar\"}]}]}"
+    restartPolicy: Never
+    terminationGracePeriodSeconds: 5

@@ -1,0 +1,14 @@
+{{- if .Values.api.pdb.enabled -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ template "kubeUp.apiName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kubeUp.apiLabels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.api.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "kubeUp.apiSelectorLabels" . | nindent 6 }}
+{{- end }}
