@@ -11,7 +11,7 @@ dependencies = [
     "fastapi[standard-no-fastapi-cloud-cli]==0.132.0",
     "kopf[uvloop]==1.44.5",
     "kubernetes-asyncio==34.3.3",
-    "orjson==3.11.5",
+    "orjson==3.11.6",
     "prometheus-client==0.24.1",
     "pydantic==2.12.5",
     "pydantic-settings==2.12.0",
@@ -24,7 +24,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest-cov==6.1.1",
-    "pytest==8.3.5",
+    "pytest==9.0.3",
     "ruff>=0.9.0,<1.0.0",
     "uv-sort>=0.4.0",
     "ty==0.0.14",
