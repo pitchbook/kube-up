@@ -24,7 +24,7 @@ spec:
       serviceAccountName: {{ template "kubeUp.apiName" . }}
       containers:
         - name: {{ template "kubeUp.apiName" . }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ include "kubeUp.image" . }}"
           imagePullPolicy: IfNotPresent
           ports:
             - name: {{ template "portNames.container" . }}
