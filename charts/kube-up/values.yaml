@@ -79,6 +79,8 @@ api:
       # - secretName: kube-up-tls
       #   hosts:
       #     - kube-up.pitchbook.com
+    path: "/"
+    pathType: ImplementationSpecific
 
 serviceMonitors:
   enabled: true

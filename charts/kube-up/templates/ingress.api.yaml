@@ -1,6 +1,6 @@
 {{- if .Values.api.ingress.enabled -}}
 {{- $fullName := include "kubeUp.apiName" . -}}
-{{- $svcPort := .Values.service.port -}}
+{{- $svcPort := .Values.api.service.port -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -8,8 +8,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "kubeUp.apiLabels" . | nindent 4 }}
-{{- if .Values.api.ingress.annotations -}}
-    annotations:
+{{- if .Values.api.ingress.annotations }}
+  annotations:
 {{- with .Values.api.ingress.annotations }}
 {{ toYaml . | indent 4 }}
 {{- end }}
@@ -30,19 +30,15 @@ spec:
   {{- end }}
   rules:
     {{- range .Values.api.ingress.hosts }}
-    - host: {{ .host | quote }}
+    - host: {{ . | quote }}
       http:
         paths:
-          {{- range .paths }}
-          - path: {{ .path }}
-            {{- if .pathType }}
-            pathType: {{ .pathType }}
-            {{- end }}
+          - path: {{ $.Values.api.ingress.path }}
+            pathType: {{ $.Values.api.ingress.pathType }}
             backend:
               service:
                 name: {{ $fullName }}
                 port:
                   number: {{ $svcPort }}
-          {{- end }}
     {{- end }}
 {{- end }}
