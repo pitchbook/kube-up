@@ -1,6 +1,6 @@
 image:
   repository: ghcr.io/pitchbook/kube-up
-  tag: v1.0.0
+  tag: ""  # defaults to Chart.appVersion
 
 manager:
   config:

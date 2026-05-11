@@ -93,3 +93,10 @@ Common Manager labels
 {{ include "kubeUp.managerSelectorLabels" . }}
 {{ include "kubeUp.labels" . }}
 {{- end -}}
+
+{{/*
+Image
+*/}}
+{{- define "kubeUp.image" -}}
+{{- printf "%s:%s" .Values.image.repository (.Values.image.tag | default .Chart.AppVersion) -}}
+{{- end -}}
