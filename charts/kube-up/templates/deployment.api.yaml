@@ -53,14 +53,14 @@ spec:
             httpGet:
               path: {{ template "probes.endpoint" . }}
               port: {{ template "portNames.container" . }}
-            initialDelaySeconds: 2
+            initialDelaySeconds: 3
             timeoutSeconds: 5
             periodSeconds: 15
           readinessProbe:
             httpGet:
               path: {{ template "probes.endpoint" . }}
               port: {{ template "portNames.container" . }}
-            initialDelaySeconds: 2
+            initialDelaySeconds: 3
             timeoutSeconds: 5
             periodSeconds: 15
           lifecycle:
