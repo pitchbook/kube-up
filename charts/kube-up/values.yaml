@@ -6,6 +6,8 @@ manager:
   config:
     # Kopf worker limit
     workerLimit: 20
+    # Env var with KU API URL, added to pods automatically
+    apiUrlEnvVar: KU_API_URL
 
     logging:
       level: info
@@ -33,7 +35,6 @@ manager:
 
 api:
   config:
-    apiUrlEnvVar: KU_API_URL
     # Extra labels to add to all emitted metrics
     extraMetricsLabels: []
       # - owner
