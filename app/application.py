@@ -1,14 +1,12 @@
 import importlib.metadata
-import os
 from contextlib import asynccontextmanager
 
-import kubernetes_asyncio
 import uvicorn
 from fastapi import FastAPI
 from structlog import get_logger
 
 from app.api.metrics import PrometheusMiddleware
-from app.common.client import API_CLIENT
+from app.common.client import init_api_client
 from app.config import SETTINGS
 from app.models import ErrorResponse
 from app.routes import kube_up_router, status_router
@@ -19,13 +17,8 @@ logger = get_logger()
 @asynccontextmanager
 async def lifespan(*args, **kwargs):
     # Startup
-    if "KUBERNETES_PORT" in os.environ:
-        logger.debug("using in-cluster config")
-        kubernetes_asyncio.config.load_incluster_config()
-    else:
-        logger.debug("using local config")
-        await kubernetes_asyncio.config.load_kube_config()
-    await API_CLIENT.load()
+    config_type = await init_api_client()
+    logger.info("application started", configType=config_type)
 
     # Main loop
     yield

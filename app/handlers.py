@@ -7,7 +7,7 @@ from kubernetes_asyncio.client import BatchV1Api, CustomObjectsApi
 from prometheus_client import start_http_server
 from structlog import get_logger
 
-from app.common.client import API_CLIENT
+from app.common.client import API_CLIENT, init_api_client
 from app.common.logs import log_exception, log_unhandled_exceptions
 from app.config import SETTINGS
 from app.operator.args import get_ku_args
@@ -24,8 +24,6 @@ logger = get_logger()
 N_RETRIES = None
 CREATE_CONTENT_TYPE = "application/json"
 MERGE_CONTENT_TYPE = "application/merge-patch+json"
-
-logger.info("watching resources in namespace", namespace=SETTINGS.namespace)
 
 try:
     WORKER_LIMIT = int(os.getenv("KOPF_WORKER_LIMIT", "20"))
@@ -54,14 +52,8 @@ async def startup_fn(**kwargs) -> None:
     Load Kubernetes config and API client on startup
     """
 
-    if "KUBERNETES_PORT" in os.environ:
-        logger.debug("using in-cluster config")
-        kubernetes_asyncio.config.load_incluster_config()
-    else:
-        logger.debug("using local config")
-        await kubernetes_asyncio.config.load_kube_config()
-
-    await API_CLIENT.load()
+    config_type = await init_api_client()
+    logger.info("watching resources in namespace", namespace=SETTINGS.namespace, configType=config_type)
 
 
 async def _cleanup_resources(name: str, namespace: str) -> None:

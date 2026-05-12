@@ -21,7 +21,7 @@ class Settings(BaseSettings):
 
 SETTINGS = Settings()
 
-setup_logging(SETTINGS.log_level, {"aiohttp": "warning", "kopf": "warning", "kubernetes_asyncio": "warning"})
+setup_logging(SETTINGS.log_level, {"aiohttp": "warning", "kopf": "warning"})
 
 ALL_METRICS_LABELS = (
     "name",
