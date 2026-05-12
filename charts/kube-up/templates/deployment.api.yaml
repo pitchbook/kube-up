@@ -35,12 +35,8 @@ spec:
 {{ toYaml . | indent 12 }}
 {{- end }}
           env:
-            - name: API_SERVICE_NAME
-              value: {{ template "kubeUp.apiName" . }}
             - name: NAMESPACE
               value: {{ .Release.Namespace | quote }}
-            - name: API_URL_ENV_VAR
-              value: {{ .Values.api.config.apiUrlEnvVar }}
             - name: LOG_LEVEL
               value: {{ .Values.api.config.logging.level | quote }}
             - name: EXTRA_METRICS_LABELS
