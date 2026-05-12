@@ -1,11 +1,18 @@
 import logging
+import sys
 import uuid
 from logging import config as logging_config
+from typing import TYPE_CHECKING
 
+import orjson
 import structlog
 from structlog import get_logger
+from structlog.processors import CallsiteParameter
 
 from app.common.metrics import EXCEPTIONS
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 LOG_LEVELS = {
     "debug": logging.DEBUG,
@@ -25,6 +32,26 @@ PACKAGE_LOG_LEVELS = {
 }
 
 logger = get_logger()
+
+
+def _dumps(event_dict: dict, default: Callable | None = None) -> bytes:
+    """
+    Custom dumps function to order log fields and use orjson for serialization
+
+    :param event_dict: log event dict
+    :param default: default function for orjson
+    :return: serialized log entry as bytes
+    """
+
+    return orjson.dumps(
+        {
+            "timestamp": event_dict.pop("timestamp"),
+            "level": event_dict.pop("level"),
+            "message": event_dict.pop("event"),
+            **event_dict,
+        },
+        default,
+    )
 
 
 def get_new_request_id() -> str:
@@ -57,13 +84,12 @@ def log_exception(
     logger.exception(message, exceptionType=type(ex).__name__, exceptionMessage=str(ex), exc_info=True, **kwargs)
 
 
-def setup_logging(level: str = "info", package_overrides: dict | None = None) -> dict:
+def setup_logging(level: str = "info", package_overrides: dict | None = None) -> None:
     """
     Setup Structlog
 
     :param level: log level
     :param package_overrides: dict mapping package name to log level.
-    :return: config dict (for use in other logging setups)
     """
 
     config_dict = {
@@ -71,8 +97,10 @@ def setup_logging(level: str = "info", package_overrides: dict | None = None) ->
         "disable_existing_loggers": False,
         "formatters": {
             "json": {
-                "format": "%(message)s %(pathname)s %(lineno)d",
-                "class": "pythonjsonlogger.json.JsonFormatter",
+                "()": "pythonjsonlogger.orjson.OrjsonFormatter",
+                "fmt": "%(asctime)s %(levelname)s %(message)s %(pathname)s %(lineno)d",
+                "datefmt": "%Y-%m-%dT%H:%M:%S",
+                "rename_fields": {"asctime": "timestamp", "levelname": "level"},
             }
         },
         "handlers": {
@@ -82,26 +110,24 @@ def setup_logging(level: str = "info", package_overrides: dict | None = None) ->
             }
         },
         "loggers": {
-            "": {"handlers": ["json"], "level": LOG_LEVELS[level.lower()]},
-            # Used for middleware logging
-            "application": {"handlers": ["json"], "level": LOG_LEVELS[level.lower()], "propagate": False},
+            "": {"handlers": ["json"]},
         },
     }
-
     logging_config.dictConfig(config_dict)
+
     structlog.configure(
+        logger_factory=structlog.BytesLoggerFactory(file=sys.stderr.buffer),
+        wrapper_class=structlog.make_filtering_bound_logger(LOG_LEVELS[level.lower()]),
         processors=[
             structlog.contextvars.merge_contextvars,
-            structlog.stdlib.filter_by_level,
-            structlog.stdlib.add_log_level,
-            structlog.stdlib.PositionalArgumentsFormatter(),
+            structlog.processors.add_log_level,
+            structlog.processors.CallsiteParameterAdder(
+                parameters={CallsiteParameter.PATHNAME, CallsiteParameter.LINENO}
+            ),
             structlog.processors.TimeStamper(fmt="iso"),
-            structlog.processors.format_exc_info,
-            structlog.processors.StackInfoRenderer(),
-            structlog.processors.UnicodeDecoder(),
-            structlog.stdlib.render_to_log_kwargs,
+            structlog.processors.ExceptionRenderer(),
+            structlog.processors.JSONRenderer(serializer=_dumps),
         ],
-        logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=True,
     )
 
@@ -118,8 +144,6 @@ def setup_logging(level: str = "info", package_overrides: dict | None = None) ->
             logging.getLogger(package).setLevel(log_level)
         except Exception as ex:
             log_exception(ex, "failed to set log level")
-
-    return config_dict
 
 
 def log_unhandled_exceptions(

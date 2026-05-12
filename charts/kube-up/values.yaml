@@ -33,6 +33,7 @@ manager:
 
 api:
   config:
+    apiUrlEnvVar: KU_API_URL
     # Extra labels to add to all emitted metrics
     extraMetricsLabels: []
       # - owner

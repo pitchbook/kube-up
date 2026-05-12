@@ -9,7 +9,12 @@ BASE_DIR = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 with open(os.path.join(BASE_DIR, "cronjob.yaml")) as yaml_in:
     CRONJOB = yaml.safe_load(yaml_in)
 
-HOST_ENV = [{"name": "KU_API_URL", "value": f"http://kube-up-api.{SETTINGS.namespace}/synthetics/results"}]
+HOST_ENV = [
+    {
+        "name": SETTINGS.api_url_env_var,
+        "value": f"http://{SETTINGS.api_service_name}.{SETTINGS.namespace}/synthetics/results",
+    }
+]
 
 
 def get_cronjob_template(
