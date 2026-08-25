@@ -250,12 +250,7 @@ API_URL = os.environ.get("KU_API_URL", "http://kube-up-api.kube-up/synthetics/re
 
 
 def main():
-    results = {
-        "ok": True,
-        "errors": [],
-        "podName": POD_NAME,
-        "customMetrics": []
-    }
+    results = {"ok": True, "errors": [], "podName": POD_NAME, "customMetrics": []}
 
     try:
         start = time.time()
@@ -263,11 +258,7 @@ def main():
         duration_ms = int((time.time() - start) * 1000)
         response.raise_for_status()
 
-        results["customMetrics"].append({
-            "name": "response_time_ms",
-            "value": duration_ms,
-            "labels": []
-        })
+        results["customMetrics"].append({"name": "response_time_ms", "value": duration_ms, "labels": []})
 
     except requests.exceptions.RequestException as e:
         results["ok"] = False
@@ -279,6 +270,7 @@ def main():
     except Exception as e:
         print(f"Failed to report results: {e}", file=sys.stderr)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

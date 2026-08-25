@@ -40,7 +40,7 @@ application.include_router(
 application.include_router(
     status_router, responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}}, tags=["Status"]
 )
-application.add_middleware(PrometheusMiddleware)  # type: ignore[arg-type]
+application.add_middleware(PrometheusMiddleware)
 
 if __name__ == "__main__":
     uvicorn.run(

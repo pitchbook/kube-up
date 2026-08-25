@@ -32,7 +32,7 @@ except ValueError as ex:
     WORKER_LIMIT = 20
 
 
-@kopf.on.login(errors=kopf.ErrorsMode.PERMANENT)  # type: ignore[arg-type]
+@kopf.on.login(errors=kopf.ErrorsMode.PERMANENT)
 async def login_fn(**kwargs):
     if "KUBERNETES_PORT" in os.environ:
         result = kopf.login_with_service_account(**kwargs)
@@ -46,7 +46,7 @@ async def login_fn(**kwargs):
     return result
 
 
-@kopf.on.startup()  # type: ignore[arg-type]
+@kopf.on.startup()
 async def startup_fn(**kwargs) -> None:
     """
     Load Kubernetes config and API client on startup
@@ -95,7 +95,7 @@ async def _cleanup_resources(name: str, namespace: str) -> None:
     logger.info("clean up complete", resourceName=name)
 
 
-@kopf.on.create("kuchecks", retries=N_RETRIES)  # type: ignore[arg-type]
+@kopf.on.create("kuchecks", retries=N_RETRIES)  # ty:ignore[invalid-argument-type]
 async def create_ku_resources(spec: dict, name: str, namespace: str, **kwargs: dict) -> None:
     """
     When a KU Check is created, create a corresponding Cronjob and KU State object
@@ -122,7 +122,7 @@ async def create_ku_resources(spec: dict, name: str, namespace: str, **kwargs: d
         k8s_batch = BatchV1Api(API_CLIENT.client)
         await k8s_batch.create_namespaced_cron_job(
             namespace=namespace,
-            body=cronjob,  # type: ignore[arg-type]
+            body=cronjob,  # ty: ignore[invalid-argument-type]
             _content_type=CREATE_CONTENT_TYPE,
         )
         logger.info("created cronjob resource", resourceName=name)
@@ -159,7 +159,7 @@ async def create_ku_resources(spec: dict, name: str, namespace: str, **kwargs: d
     logger.debug("creation complete", resourceName=name)
 
 
-@kopf.on.update("kuchecks", retries=N_RETRIES)  # type: ignore[arg-type]
+@kopf.on.update("kuchecks", retries=N_RETRIES)  # ty: ignore[invalid-argument-type]
 async def update_ku_resources(spec: dict, name: str, namespace: str, **kwargs: dict) -> None:
     """
     When a KU Check is updated, update the corresponding Cronjob and KU State object
@@ -197,7 +197,7 @@ async def update_ku_resources(spec: dict, name: str, namespace: str, **kwargs: d
                 logger.warn("Cronjob not found, attempting to create", resourceName=name)
                 await k8s_batch.create_namespaced_cron_job(
                     namespace=namespace,
-                    body=cronjob,  # type: ignore[arg-type]
+                    body=cronjob,  # ty: ignore[invalid-argument-type]
                     _content_type=CREATE_CONTENT_TYPE,
                 )
                 logger.info("created cronjob resource", resourceName=name)
@@ -260,13 +260,11 @@ async def update_ku_resources(spec: dict, name: str, namespace: str, **kwargs: d
     logger.debug("update complete", resourceName=name)
 
 
-@kopf.on.startup()  # type: ignore[arg-type]
+@kopf.on.startup()
 def configure(settings: kopf.OperatorSettings, **_):
     # Default worker limit is unbounded, which means it's possible to flood the API server on restart
-    settings.batching.worker_limit = WORKER_LIMIT
-    # Allow workers enough time to process large batches
-    settings.batching.batch_window = 30
-    settings.batching.exit_timeout = 10
+    settings.queueing.worker_limit = WORKER_LIMIT
+    settings.queueing.exit_timeout = 10
     # All logs go to the Kubernetes Events API by default, making API server flooding more likely
     settings.posting.enabled = False
     # Timeouts prevent the worker from silently hanging when the connection pool is exhausted

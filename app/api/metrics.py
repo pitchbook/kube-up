@@ -1,6 +1,7 @@
 import time
 from typing import TYPE_CHECKING
 
+from fastapi.routing import iter_route_contexts
 from prometheus_client import Counter, Gauge, Histogram
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.routing import Match
@@ -91,12 +92,12 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
         :return: path
         """
 
-        for route in request.app.routes:
+        for route in iter_route_contexts(request.app.routes):
             match, _ = route.matches(request.scope)
-            if match == Match.FULL:
+            if match == Match.FULL and route.path is not None:
                 return route.path
 
-        return request.url.path
+        return request.scope["path"]
 
 
 def _create_custom_metric(check_name: str, key: str, labels: list[SyntheticCustomMetricLabel]) -> Gauge:

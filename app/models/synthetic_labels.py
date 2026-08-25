@@ -7,6 +7,6 @@ from app.models._base import AsyncAPIModel
 
 # Inner model for the GET /synthetics endpoint
 # Defined dynamically from config
-SyntheticLabels = create_model(  # type: ignore[call-overload]
+SyntheticLabels = create_model(  # ty: ignore[no-matching-overload]
     "SyntheticLabels", **{field: (Any, field) for field in SETTINGS.extra_metrics_labels}, __base__=(AsyncAPIModel,)
 )
