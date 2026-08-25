@@ -6,7 +6,7 @@ from structlog import get_logger
 logger = get_logger()
 
 
-@kopf.on.probe(id="watcher-healthcheck")  # type: ignore[arg-type]
+@kopf.on.probe(id="watcher-healthcheck")
 async def check_watchers(**kwargs):
     # Collect asyncio tasks that are responsible for watching kubernetes events
     # if one of these fails, the healthcheck should fail
