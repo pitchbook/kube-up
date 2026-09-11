@@ -42,8 +42,6 @@ spec:
           env:
             - name: API_SERVICE_NAME
               value: {{ template "kubeUp.apiName" . }}
-            - name: NAMESPACE
-              value: {{ .Release.Namespace | quote }}
             - name: API_URL_ENV_VAR
               value: {{ .Values.manager.config.apiUrlEnvVar }}
             - name: LOG_LEVEL
@@ -57,7 +55,7 @@ spec:
             - sh
           args:
             - "-c"
-            - "kopf run --liveness=http://0.0.0.0:{{ .Values.manager.deployment.healthPort }}{{ template "probes.endpoint" . }} app/handlers.py -n ${NAMESPACE}"
+            - "kopf run --liveness=http://0.0.0.0:{{ .Values.manager.deployment.healthPort }}{{ template "probes.endpoint" . }} app/handlers.py"
           livenessProbe:
             httpGet:
               path: {{ template "probes.endpoint" . }}
