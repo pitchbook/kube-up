@@ -113,8 +113,7 @@ async def get_check_statuses() -> tuple[bool, list[str], list[SyntheticsState]]:
 
     k8s_crd = CustomObjectsApi(API_CLIENT.client)
     try:
-        k8s_states = await k8s_crd.list_namespaced_custom_object(
-            namespace=SETTINGS.namespace,
+        k8s_states = await k8s_crd.list_cluster_custom_object(
             group=SETTINGS.ku_group,
             version=SETTINGS.ku_api_version,
             plural=SETTINGS.ku_state_plural,
@@ -129,8 +128,7 @@ async def get_check_statuses() -> tuple[bool, list[str], list[SyntheticsState]]:
                 sleep_duration = 1
             log_exception(ex, f"rate limited, retrying after {sleep_duration} second(s)")
             await sleep(sleep_duration)
-            k8s_states = await k8s_crd.list_namespaced_custom_object(
-                namespace=SETTINGS.namespace,
+            k8s_states = await k8s_crd.list_cluster_custom_object(
                 group=SETTINGS.ku_group,
                 version=SETTINGS.ku_api_version,
                 plural=SETTINGS.ku_state_plural,
