@@ -42,6 +42,8 @@ spec:
           env:
             - name: API_SERVICE_NAME
               value: {{ template "kubeUp.apiName" . }}
+            - name: API_NAMESPACE
+              value: {{ .Release.Namespace | quote }}
             - name: API_URL_ENV_VAR
               value: {{ .Values.manager.config.apiUrlEnvVar }}
             - name: LOG_LEVEL

@@ -23,7 +23,7 @@ def get_check_env(namespace: str) -> list[dict]:
     return [
         {
             "name": SETTINGS.api_url_env_var,
-            "value": f"http://{SETTINGS.api_service_name}.{SETTINGS.namespace}/synthetics/results",
+            "value": f"http://{SETTINGS.api_service_name}.{SETTINGS.api_namespace}/synthetics/results",
         },
         {"name": NAMESPACE_ENV_VAR, "value": namespace},
     ]
