@@ -13,8 +13,12 @@ The Manager can be configured using the following environment variables:
 | ------------------- | --------- | --------------------------------------------------- |
 | `METRICS_PORT`      | `8000`    | Port to bind the metrics server to                  |
 | `LOG_LEVEL`         | "info"    | Logging level ("debug", "info", "warning", "error") |
-| `NAMESPACE`         | "kube-up" | Namespace to watch for CRDs in                      |
+| `API_NAMESPACE`     | "kube-up" | Namespace the Kube Up API service runs in           |
 | `KOPF_WORKER_LIMIT` | `20`      | Kopf worker limit                                   |
+
+The Manager watches `KubeUpCheck` resources in **all namespaces**. Each check's namespace is injected into the check
+container as the `KU_NAMESPACE` environment variable, which check scripts should echo back in the results payload so
+the API can route pod, job, and state lookups without cluster-wide searches.
 
 ## CRDS
 

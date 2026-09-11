@@ -128,6 +128,7 @@ their execution results.
   "ok": true,
   "errors": [],
   "podName": "test-check-28450123-abc12",
+  "namespace": "kube-up",
   "customMetrics": [
     {
       "name": "ttfb",
@@ -155,6 +156,7 @@ their execution results.
 | `ok`            | boolean                      | Yes      | Whether the synthetic check succeeded                                          |
 | `errors`        | array[string]                | No       | List of errors encountered during the check (default: `[]`)                    |
 | `podName`       | string                       | No       | Name of the pod running the check. If null, will be determined from request IP |
+| `namespace`     | string                       | No       | Namespace the check runs in. Injected as `KU_NAMESPACE`; if omitted, resolved from the pod (cluster-wide search) |
 | `customMetrics` | array[SyntheticCustomMetric] | No       | Custom metrics to report (default: `[]`)                                       |
 
 **Notes:**
@@ -165,7 +167,8 @@ their execution results.
   - `job-name`: The Kubernetes Job name
   - `kube-up.pitchbook.com/owning-cronjob`: The KubeUpCheck name
   - `kube-up.pitchbook.com/timeout`: The timeout value (optional)
-- Pod must exist in the same namespace as the KubeUpCheck (configured via `NAMESPACE`)
+- The pod must exist; its namespace is taken from the request's `namespace` field when present, otherwise the pod is
+  located cluster-wide by name (or IP) and its own namespace is used
 
 #### Response
 
@@ -218,6 +221,7 @@ curl -X POST http://kube-up-api/synthetics/results \
   -d "{
     \"ok\": true,
     \"errors\": [],
+    \"namespace\": \"${KU_NAMESPACE}\",
     \"customMetrics\": [
       {
         \"name\": \"response_time\",

@@ -148,7 +148,7 @@ spec:
             # Report results
             curl -X POST ${KU_API_URL} \
               -H "Content-Type: application/json" \
-              -d "{\"podName\": \"${HOSTNAME}\", \"ok\": ${ok}, \"errors\": [], \"customMetrics\": [{\"name\": \"someMetric\", \"value\": 1, \"labels\": [{\"name\": \"service\", \"value\": \"foo\"}]}, {\"name\": \"someMetric\", \"value\": 0, \"labels\": [{\"name\":\"service\", \"value\":\"bar\"}]}]}"
+              -d "{\"podName\": \"${HOSTNAME}\", \"namespace\": \"${KU_NAMESPACE}\", \"ok\": ${ok}, \"errors\": [], \"customMetrics\": [{\"name\": \"someMetric\", \"value\": 1, \"labels\": [{\"name\": \"service\", \"value\": \"foo\"}]}, {\"name\": \"someMetric\", \"value\": 0, \"labels\": [{\"name\":\"service\", \"value\":\"bar\"}]}]}"
     restartPolicy: Never
     terminationGracePeriodSeconds: 5
 ```
@@ -209,8 +209,9 @@ Your synthetic check container must:
 
 1. Run your test/validation logic
 2. Determine success/failure and gather metrics
-3. POST results to `http://kube-up-api.kube-up/synthetics/results`
-4. Exit status 0 (to avoid unnecessary retries, API will handle marking the check as failed based on results)
+3. POST results to `${KU_API_URL}` (injected into your container)
+4. Include `"namespace": "${KU_NAMESPACE}"` in the results payload (also injected; if omitted, the API resolves the namespace from the pod)
+5. Exit status 0 (to avoid unnecessary retries, API will handle marking the check as failed based on results)
 
 ### Result Reporting Format
 
@@ -221,6 +222,7 @@ POST to `/synthetics/results` with:
   "ok": true,
   "errors": [],
   "podName": "${HOSTNAME}",
+  "namespace": "${KU_NAMESPACE}",
   "customMetrics": [
     {
       "name": "metric_name",
@@ -245,12 +247,13 @@ import requests
 
 
 POD_NAME = os.environ.get("HOSTNAME")
+CHECK_NAMESPACE = os.environ.get("KU_NAMESPACE", "")
 TARGET_URL = os.environ.get("TARGET_URL", "http://httpbin.org/status/200")
 API_URL = os.environ.get("KU_API_URL", "http://kube-up-api.kube-up/synthetics/results")
 
 
 def main():
-    results = {"ok": True, "errors": [], "podName": POD_NAME, "customMetrics": []}
+    results = {"ok": True, "errors": [], "podName": POD_NAME, "namespace": CHECK_NAMESPACE, "customMetrics": []}
 
     try:
         start = time.time()
@@ -296,7 +299,8 @@ if [ "$HTTP_STATUS" = "200" ]; then
     RESULT='{
         "ok": true,
         "errors": [],
-        "podName": "${HOSTNAME}"
+        "podName": "${HOSTNAME}",
+        "namespace": "${KU_NAMESPACE}",
         "customMetrics": [
             {
                 "name": "response_time_ms",
@@ -309,6 +313,7 @@ else
     RESULT='{
         "ok": false,
         "errors": ["HTTP '"$HTTP_STATUS"'"],
+        "namespace": "${KU_NAMESPACE}",
         "customMetrics": []
     }'
 fi
