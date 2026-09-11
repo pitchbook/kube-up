@@ -28,10 +28,16 @@ async def update_state(results: ResultsRequest) -> None:
     # Work around content-type bug in kubernetes_asyncio patching
     API_CLIENT.client.set_default_header("Content-Type", "application/merge-patch+json")
 
+    # Namespace resolved from the payload (KU_NAMESPACE) or from the pod itself during identity checks
+    namespace = results.namespace
+    if not namespace:
+        log_exception(Exception("namespace unresolved"), "Namespace could not be resolved", podName=results.pod_name)
+        raise KUNotFoundError("Unable to resolve the namespace of the check")
+
     k8s_batch = BatchV1Api(API_CLIENT.client)
     # Retrieve Job to infer start time and duration
     try:
-        job = await k8s_batch.read_namespaced_job(name=results.job_name or "", namespace=SETTINGS.namespace)
+        job = await k8s_batch.read_namespaced_job(name=results.job_name or "", namespace=namespace)
     except ApiException as ex:
         if ex.status == 404:
             log_exception(ex, "Job not found", jobName=results.job_name)
@@ -60,7 +66,7 @@ async def update_state(results: ResultsRequest) -> None:
     # kwargs reused several times
     crd_kwargs = {
         "name": results.check_name or "",
-        "namespace": SETTINGS.namespace,
+        "namespace": namespace,
         "group": SETTINGS.ku_group,
         "version": SETTINGS.ku_api_version,
         "plural": SETTINGS.ku_state_plural,
