@@ -28,10 +28,13 @@ async def update_state(results: ResultsRequest) -> None:
     # Work around content-type bug in kubernetes_asyncio patching
     API_CLIENT.client.set_default_header("Content-Type", "application/merge-patch+json")
 
-    # Namespace resolved from the payload (KU_NAMESPACE) or from the pod itself during identity checks
+    # Namespace comes from the check pod, resolved during pod lookup
     namespace = results.namespace
     if not namespace:
-        log_exception(Exception("namespace unresolved"), "Namespace could not be resolved", podName=results.pod_name)
+        logger.error(
+            "Namespace could not be resolved",
+            podName=results.pod_name,
+        )
         raise KUNotFoundError("Unable to resolve the namespace of the check")
 
     k8s_batch = BatchV1Api(API_CLIENT.client)

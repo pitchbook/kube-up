@@ -16,9 +16,8 @@ The Manager can be configured using the following environment variables:
 | `API_NAMESPACE`     | "kube-up" | Namespace the Kube Up API service runs in           |
 | `KOPF_WORKER_LIMIT` | `20`      | Kopf worker limit                                   |
 
-The Manager watches `KubeUpCheck` resources in **all namespaces**. Each check's namespace is injected into the check
-container as the `KU_NAMESPACE` environment variable, which check scripts should echo back in the results payload so
-the API can route pod, job, and state lookups without cluster-wide searches.
+The Manager watches `KubeUpCheck` resources in **all namespaces**. The API resolves each check's namespace from the
+check pod itself (cluster-wide pod lookup), so check scripts only need to report `podName` and results.
 
 ## CRDS
 

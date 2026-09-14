@@ -156,7 +156,6 @@ their execution results.
 | `ok`            | boolean                      | Yes      | Whether the synthetic check succeeded                                          |
 | `errors`        | array[string]                | No       | List of errors encountered during the check (default: `[]`)                    |
 | `podName`       | string                       | No       | Name of the pod running the check. If null, will be determined from request IP |
-| `namespace`     | string                       | No       | Namespace the check runs in. Injected as `KU_NAMESPACE`; if omitted, resolved from the pod (cluster-wide search) |
 | `customMetrics` | array[SyntheticCustomMetric] | No       | Custom metrics to report (default: `[]`)                                       |
 
 **Notes:**
@@ -221,7 +220,6 @@ curl -X POST http://kube-up-api/synthetics/results \
   -d "{
     \"ok\": true,
     \"errors\": [],
-    \"namespace\": \"${KU_NAMESPACE}\",
     \"customMetrics\": [
       {
         \"name\": \"response_time\",

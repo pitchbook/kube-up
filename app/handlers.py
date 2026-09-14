@@ -119,14 +119,13 @@ async def _assert_name_is_unique(name: str, namespace: str) -> None:
         log_unhandled_exceptions(ex, "GET", "_assert_name_is_unique", "error listing KU States")
         return
 
-    for state in states.get("items", []):
-        state_name = state["metadata"]["name"]
-        state_namespace = state["metadata"]["namespace"]
-        if state_name == name and state_namespace != namespace:
-            raise kopf.PermanentError(
-                f"check name '{name}' is already used by a KU State in namespace '{state_namespace}'; "
-                "check names must be unique across the cluster"
-            )
+    state_namespaces = {state["metadata"]["name"]: state["metadata"]["namespace"] for state in states.get("items", [])}
+    state_namespace = state_namespaces.get(name)
+    if state_namespace and state_namespace != namespace:
+        raise kopf.PermanentError(
+            f"check name '{name}' is already used by a KU State in namespace '{state_namespace}'; "
+            "check names must be unique across the cluster"
+        )
 
 
 @kopf.on.create("kuchecks", retries=N_RETRIES)  # ty:ignore[invalid-argument-type]

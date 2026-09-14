@@ -14,11 +14,6 @@ class ResultsRequest(KubeUpBase):
     """
 
     pod_name: str | None = Field(None, description="Pod name (if null, will be retrieved with IP)", examples=[None])
-    namespace: str | None = Field(
-        None,
-        description="Namespace the check runs in (injected as KU_NAMESPACE; if null, resolved from the pod)",
-        examples=[None],
-    )
     custom_metrics: list[SyntheticCustomMetric] = Field([], description="Custom metrics")
 
     def __init__(self, **kwargs):
@@ -26,6 +21,7 @@ class ResultsRequest(KubeUpBase):
 
         self._job_name = None
         self._check_name = None
+        self._namespace = None
 
     def _get_pod_details(self, pod: V1Pod) -> None:
         """
@@ -35,7 +31,7 @@ class ResultsRequest(KubeUpBase):
         """
 
         self.pod_name = pod.metadata.name
-        self.namespace = pod.metadata.namespace
+        self._namespace = pod.metadata.namespace
         self._job_name = pod.metadata.labels["job-name"]
         self._check_name = pod.metadata.labels["kube-up.pitchbook.com/owning-cronjob"]
         try:
@@ -51,16 +47,12 @@ class ResultsRequest(KubeUpBase):
         k8s_core = CoreV1Api(API_CLIENT.client)
 
         try:
-            if self.namespace:
-                pod = await k8s_core.read_namespaced_pod(name=self.pod_name or "", namespace=self.namespace)
-            else:
-                # Legacy checks without namespace in the payload: search all namespaces.
-                # Pod names embed two random suffixes, so at most one pod matches.
-                pod = sorted(
-                    (await k8s_core.list_pod_for_all_namespaces(field_selector=f"metadata.name={self.pod_name}")).items,
-                    key=lambda item: item.metadata.creation_timestamp,
-                    reverse=True,
-                )[0]
+            # Pod names embed two random suffixes, so at most one pod matches.
+            pod = sorted(
+                (await k8s_core.list_pod_for_all_namespaces(field_selector=f"metadata.name={self.pod_name}")).items,
+                key=lambda item: item.metadata.creation_timestamp,
+                reverse=True,
+            )[0]
             self._get_pod_details(pod)
         except IndexError as ex:
             log_exception(ex, "Pod not found", podName=self.pod_name)
@@ -79,12 +71,7 @@ class ResultsRequest(KubeUpBase):
         k8s_core = CoreV1Api(API_CLIENT.client)
 
         try:
-            if self.namespace:
-                pods = (
-                    await k8s_core.list_namespaced_pod(namespace=self.namespace, field_selector=f"status.podIP={ip}")
-                ).items
-            else:
-                pods = (await k8s_core.list_pod_for_all_namespaces(field_selector=f"status.podIP={ip}")).items
+            pods = (await k8s_core.list_pod_for_all_namespaces(field_selector=f"status.podIP={ip}")).items
             # Select the most recent pod in case there are old pods with the same IP
             pod = sorted(
                 pods,
@@ -95,6 +82,16 @@ class ResultsRequest(KubeUpBase):
         except IndexError as ex:
             log_exception(ex, "Pod not found", podIp=ip)
             raise KUNotFoundError(f"Pod IP '{ip}' not found") from ex
+
+    @property
+    def namespace(self) -> str | None:
+        """
+        Retrieve the namespace the check runs in
+
+        :return: namespace
+        """
+
+        return self._namespace
 
     @property
     def job_name(self) -> str | None:

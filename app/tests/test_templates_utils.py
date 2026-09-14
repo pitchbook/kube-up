@@ -61,19 +61,17 @@ def test_get_cronjob_template_host_env_injected_no_existing_env():
     result = get_cronjob_template("check", "default", 5, False, BASE_POD_SPEC, {})
 
     env = result["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0]["env"]
-    entries = {e["name"]: e["value"] for e in env}
+    entries = {entry["name"]: entry for entry in env}
     assert "KU_API_URL" in entries
-    assert entries["KU_NAMESPACE"] == "default"
 
 
 def test_get_cronjob_template_host_env_appended_to_existing_env():
     result = get_cronjob_template("check", "monitoring", 5, False, POD_SPEC_WITH_ENV, {})
 
     env = result["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0]["env"]
-    entries = {e["name"]: e["value"] for e in env}
+    entries = {entry["name"]: entry for entry in env}
     assert "FOO" in entries
     assert "KU_API_URL" in entries
-    assert entries["KU_NAMESPACE"] == "monitoring"
 
 
 def test_get_cronjob_template_mutates_pod_spec_in_place():

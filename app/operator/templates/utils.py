@@ -9,24 +9,12 @@ BASE_DIR = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 with open(os.path.join(BASE_DIR, "cronjob.yaml")) as yaml_in:
     CRONJOB = yaml.safe_load(yaml_in)
 
-NAMESPACE_ENV_VAR = "KU_NAMESPACE"
-
-
-def get_check_env(namespace: str) -> list[dict]:
-    """
-    Environment variables injected into the check container
-
-    :param namespace: namespace the check runs in
-    :return: list of env entries
-    """
-
-    return [
-        {
-            "name": SETTINGS.api_url_env_var,
-            "value": f"http://{SETTINGS.api_service_name}.{SETTINGS.api_namespace}/synthetics/results",
-        },
-        {"name": NAMESPACE_ENV_VAR, "value": namespace},
-    ]
+HOST_ENV = [
+    {
+        "name": SETTINGS.api_url_env_var,
+        "value": f"http://{SETTINGS.api_service_name}.{SETTINGS.api_namespace}/synthetics/results",
+    },
+]
 
 
 def get_cronjob_template(
@@ -53,11 +41,10 @@ def get_cronjob_template(
     cronjob["spec"]["jobTemplate"]["spec"]["template"]["spec"] = pod_spec
     cronjob["spec"]["jobTemplate"]["spec"]["template"]["spec"]["restartPolicy"] = "Never"
     cronjob["spec"]["jobTemplate"]["spec"]["template"]["metadata"]["labels"].update(extra_labels)
-    check_env = get_check_env(namespace)
     if cronjob["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0].get("env"):
-        cronjob["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0]["env"].extend(check_env)
+        cronjob["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0]["env"].extend(HOST_ENV)
     else:
-        cronjob["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0]["env"] = check_env
+        cronjob["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0]["env"] = HOST_ENV
 
     return cronjob
 
