@@ -1,4 +1,5 @@
 import dataclasses
+import logging
 import os
 
 import kopf
@@ -120,22 +121,21 @@ async def _assert_name_is_unique(name: str, namespace: str) -> None:
         return
 
     state_namespaces = {state["metadata"]["name"]: state["metadata"]["namespace"] for state in states.get("items", [])}
-    state_namespace = state_namespaces.get(name, "")
-    if state_namespace != namespace:
-        raise kopf.PermanentError(
-            f"check name '{name}' is already used by a KU State in namespace '{state_namespace}'; "
-            "check names must be unique across the cluster"
-        )
+    state_namespace = state_namespaces.get(name)
+    if state_namespace and state_namespace != namespace:
+        error_message = f"check name '{name}' is already used by a KU State in namespace '{state_namespace}'; check names must be unique across the cluster"
+        raise kopf.PermanentError(error_message)
 
 
 @kopf.on.create("kuchecks", retries=N_RETRIES)  # ty:ignore[invalid-argument-type]
-async def create_ku_resources(spec: dict, name: str, namespace: str, **kwargs: dict) -> None:
+async def create_ku_resources(spec: dict, name: str, namespace: str, body: dict, **kwargs: dict) -> None:
     """
     When a KU Check is created, create a corresponding Cronjob and KU State object
 
     :param spec: KUCheck spec
     :param name: KUCheck name
     :param namespace: KUCheck namespace
+    :param body: KUCheck body
     :param kwargs: KOPF kwargs
     """
 
@@ -186,6 +186,12 @@ async def create_ku_resources(spec: dict, name: str, namespace: str, **kwargs: d
             kuState=str(ku_state),
             crd=str(k8s_crd),
         )
+        kopf.exception(
+            body,
+            exc=ex,
+            reason="CheckCreationFailed",
+            message=str(ex),
+        )
         await _cleanup_resources(name, namespace)
 
         raise
@@ -194,13 +200,14 @@ async def create_ku_resources(spec: dict, name: str, namespace: str, **kwargs: d
 
 
 @kopf.on.update("kuchecks", retries=N_RETRIES)  # ty: ignore[invalid-argument-type]
-async def update_ku_resources(spec: dict, name: str, namespace: str, **kwargs: dict) -> None:
+async def update_ku_resources(spec: dict, name: str, namespace: str, body: dict, **kwargs: dict) -> None:
     """
     When a KU Check is updated, update the corresponding Cronjob and KU State object
 
     :param spec: KUCheck spec
     :param name: KUCheck name
     :param namespace: KUCheck namespace
+    :param body: KUCheck body
     :param kwargs: KOPF kwargs
     """
 
@@ -287,6 +294,12 @@ async def update_ku_resources(spec: dict, name: str, namespace: str, **kwargs: d
             kuState=str(ku_state),
             crd=str(k8s_crd),
         )
+        kopf.exception(
+            body,
+            exc=ex,
+            reason="CheckUpdateFailed",
+            message=str(ex),
+        )
         await _cleanup_resources(name, namespace)
 
         raise
@@ -299,8 +312,9 @@ def configure(settings: kopf.OperatorSettings, **_):
     # Default worker limit is unbounded, which means it's possible to flood the API server on restart
     settings.queueing.worker_limit = WORKER_LIMIT
     settings.queueing.exit_timeout = 10
-    # All logs go to the Kubernetes Events API by default, making API server flooding more likely
-    settings.posting.enabled = False
+    # Only log error events
+    settings.posting.enabled = True
+    settings.posting.level = logging.ERROR
     # Timeouts prevent the worker from silently hanging when the connection pool is exhausted
     settings.networking.request_timeout = 60
     settings.networking.connect_timeout = 60
