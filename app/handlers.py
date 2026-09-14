@@ -121,7 +121,7 @@ async def _assert_name_is_unique(name: str, namespace: str) -> None:
 
     state_namespaces = {state["metadata"]["name"]: state["metadata"]["namespace"] for state in states.get("items", [])}
     state_namespace = state_namespaces.get(name, "")
-    if state_namespace:
+    if state_namespace != namespace:
         raise kopf.PermanentError(
             f"check name '{name}' is already used by a KU State in namespace '{state_namespace}'; "
             "check names must be unique across the cluster"
