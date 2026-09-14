@@ -209,7 +209,7 @@ Your synthetic check container must:
 
 1. Run your test/validation logic
 2. Determine success/failure and gather metrics
-3. POST results to `http://kube-up-api.kube-up/synthetics/results`
+3. POST results to `${KU_API_URL}` (injected into your container)
 4. Exit status 0 (to avoid unnecessary retries, API will handle marking the check as failed based on results)
 
 ### Result Reporting Format
@@ -296,7 +296,7 @@ if [ "$HTTP_STATUS" = "200" ]; then
     RESULT='{
         "ok": true,
         "errors": [],
-        "podName": "${HOSTNAME}"
+        "podName": "${HOSTNAME}",
         "customMetrics": [
             {
                 "name": "response_time_ms",

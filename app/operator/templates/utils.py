@@ -12,8 +12,8 @@ with open(os.path.join(BASE_DIR, "cronjob.yaml")) as yaml_in:
 HOST_ENV = [
     {
         "name": SETTINGS.api_url_env_var,
-        "value": f"http://{SETTINGS.api_service_name}.{SETTINGS.namespace}/synthetics/results",
-    }
+        "value": f"http://{SETTINGS.api_service_name}.{SETTINGS.api_namespace}/synthetics/results",
+    },
 ]
 
 

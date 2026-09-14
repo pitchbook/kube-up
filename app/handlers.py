@@ -53,7 +53,7 @@ async def startup_fn(**kwargs) -> None:
     """
 
     config_type = await init_api_client()
-    logger.info("watching resources in namespace", namespace=SETTINGS.namespace, configType=config_type)
+    logger.info("watching resources in all namespaces", configType=config_type)
 
 
 async def _cleanup_resources(name: str, namespace: str) -> None:
@@ -95,6 +95,39 @@ async def _cleanup_resources(name: str, namespace: str) -> None:
     logger.info("clean up complete", resourceName=name)
 
 
+async def _assert_name_is_unique(name: str, namespace: str) -> None:
+    """
+    Raise PermanentError if a KU State with the same name exists in another namespace
+
+    Check names must be unique across the cluster: they key metrics labels and the
+    API's legacy fallback resolves results by name. A collision in the same namespace
+    is left to the existing CronJob creation conflict handling.
+
+    :param name: KU Check name
+    :param namespace: KU Check namespace
+    """
+
+    k8s_crd = CustomObjectsApi(API_CLIENT.client)
+    try:
+        states = await k8s_crd.list_cluster_custom_object(
+            group=KU_GROUP,
+            version=KU_API_VERSION,
+            plural=KU_STATE_PLURAL,
+        )
+    except Exception as ex:
+        # If uniqueness cannot be verified, don't block check creation on a monitor failure
+        log_unhandled_exceptions(ex, "GET", "_assert_name_is_unique", "error listing KU States")
+        return
+
+    state_namespaces = {state["metadata"]["name"]: state["metadata"]["namespace"] for state in states.get("items", [])}
+    state_namespace = state_namespaces.get(name, "")
+    if state_namespace != namespace:
+        raise kopf.PermanentError(
+            f"check name '{name}' is already used by a KU State in namespace '{state_namespace}'; "
+            "check names must be unique across the cluster"
+        )
+
+
 @kopf.on.create("kuchecks", retries=N_RETRIES)  # ty:ignore[invalid-argument-type]
 async def create_ku_resources(spec: dict, name: str, namespace: str, **kwargs: dict) -> None:
     """
@@ -113,6 +146,7 @@ async def create_ku_resources(spec: dict, name: str, namespace: str, **kwargs: d
     logger.debug("creating KU resources", resourceName=name)
 
     try:
+        await _assert_name_is_unique(name, namespace)
         interval, suspend, pod_spec, extra_labels = get_ku_args(spec, name)
 
         cronjob = get_cronjob_template(name, namespace, interval, suspend, pod_spec, extra_labels)

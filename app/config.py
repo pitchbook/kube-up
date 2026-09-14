@@ -12,12 +12,12 @@ class Settings(BaseSettings):
     host_port: int = Field(8080)
     metrics_port: int = Field(8000)
     timeout: int = Field(300)
-    namespace: str = Field("kube-up")
     ku_group: str = Field("pitchbook.com")
     ku_api_version: str = Field("v1")
     ku_state_plural: str = Field("kustates")
     extra_metrics_labels: list[str] = Field([])
     api_service_name: str = Field("kube-up-api")
+    api_namespace: str = Field("kube-up")
     api_url_env_var: str = Field("KU_API_URL")
 
 

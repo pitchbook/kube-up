@@ -3,7 +3,6 @@ from pydantic import Field
 
 from app.common.client import API_CLIENT
 from app.common.logs import log_exception
-from app.config import SETTINGS
 from app.models import KUNotFoundError
 from app.models._base import KubeUpBase
 from app.models.synthetics_custom_metrics import SyntheticCustomMetric
@@ -22,6 +21,7 @@ class ResultsRequest(KubeUpBase):
 
         self._job_name = None
         self._check_name = None
+        self.namespace = None
 
     def _get_pod_details(self, pod: V1Pod) -> None:
         """
@@ -31,6 +31,7 @@ class ResultsRequest(KubeUpBase):
         """
 
         self.pod_name = pod.metadata.name
+        self.namespace = pod.metadata.namespace
         self._job_name = pod.metadata.labels["job-name"]
         self._check_name = pod.metadata.labels["kube-up.pitchbook.com/owning-cronjob"]
         try:
@@ -40,14 +41,22 @@ class ResultsRequest(KubeUpBase):
 
     async def get_pod_details_from_name(self) -> None:
         """
-        Set the pod, job, and check names from a pod IP
+        Set the pod, job, and check names from a pod name
         """
 
         k8s_core = CoreV1Api(API_CLIENT.client)
 
         try:
-            pod = await k8s_core.read_namespaced_pod(name=self.pod_name or "", namespace=SETTINGS.namespace)
+            # Pod names embed two random suffixes, so at most one pod matches.
+            pod = sorted(
+                (await k8s_core.list_pod_for_all_namespaces(field_selector=f"metadata.name={self.pod_name}")).items,
+                key=lambda item: item.metadata.creation_timestamp,
+                reverse=True,
+            )[0]
             self._get_pod_details(pod)
+        except IndexError as ex:
+            log_exception(ex, "Pod not found", podName=self.pod_name)
+            raise KUNotFoundError(f"Pod '{self.pod_name}' not found") from ex
         except Exception as ex:
             log_exception(ex, "Pod not found", podName=self.pod_name)
             raise KUNotFoundError(f"Pod '{self.pod_name}' not found") from ex
@@ -62,13 +71,10 @@ class ResultsRequest(KubeUpBase):
         k8s_core = CoreV1Api(API_CLIENT.client)
 
         try:
+            pods = (await k8s_core.list_pod_for_all_namespaces(field_selector=f"status.podIP={ip}")).items
             # Select the most recent pod in case there are old pods with the same IP
             pod = sorted(
-                (
-                    await k8s_core.list_namespaced_pod(
-                        namespace=SETTINGS.namespace, field_selector=f"status.podIP={ip}"
-                    )
-                ).items,
+                pods,
                 key=lambda item: item.metadata.creation_timestamp,
                 reverse=True,
             )[0]

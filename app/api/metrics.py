@@ -8,7 +8,7 @@ from starlette.routing import Match
 from structlog import get_logger
 
 from app.api.labels import filter_labels
-from app.config import ALL_METRICS_LABELS, SETTINGS
+from app.config import ALL_METRICS_LABELS
 
 if TYPE_CHECKING:
     from starlette.requests import Request
@@ -128,7 +128,7 @@ def update_metrics(states: list[SyntheticsState]) -> None:
         custom_metric.clear()
 
     for state in states:
-        labels = {**filter_labels(state.labels.model_dump()), "name": state.name, "namespace": SETTINGS.namespace}
+        labels = {**filter_labels(state.labels.model_dump()), "name": state.name, "namespace": state.namespace}
         CHECK_METRICS.labels(**labels).set(int(state.ok))
         CHECK_DURATION_METRIC.labels(**labels).set(state.run_duration_int)
         for custom_metric_obj in state.custom_metrics:

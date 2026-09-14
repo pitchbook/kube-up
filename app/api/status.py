@@ -28,10 +28,19 @@ async def update_state(results: ResultsRequest) -> None:
     # Work around content-type bug in kubernetes_asyncio patching
     API_CLIENT.client.set_default_header("Content-Type", "application/merge-patch+json")
 
+    # Namespace comes from the check pod, resolved during pod lookup
+    namespace = results.namespace
+    if not namespace:
+        logger.error(
+            "Namespace could not be resolved",
+            podName=results.pod_name,
+        )
+        raise KUNotFoundError("Unable to resolve the namespace of the check")
+
     k8s_batch = BatchV1Api(API_CLIENT.client)
     # Retrieve Job to infer start time and duration
     try:
-        job = await k8s_batch.read_namespaced_job(name=results.job_name or "", namespace=SETTINGS.namespace)
+        job = await k8s_batch.read_namespaced_job(name=results.job_name or "", namespace=namespace)
     except ApiException as ex:
         if ex.status == 404:
             log_exception(ex, "Job not found", jobName=results.job_name)
@@ -60,7 +69,7 @@ async def update_state(results: ResultsRequest) -> None:
     # kwargs reused several times
     crd_kwargs = {
         "name": results.check_name or "",
-        "namespace": SETTINGS.namespace,
+        "namespace": namespace,
         "group": SETTINGS.ku_group,
         "version": SETTINGS.ku_api_version,
         "plural": SETTINGS.ku_state_plural,
@@ -107,8 +116,7 @@ async def get_check_statuses() -> tuple[bool, list[str], list[SyntheticsState]]:
 
     k8s_crd = CustomObjectsApi(API_CLIENT.client)
     try:
-        k8s_states = await k8s_crd.list_namespaced_custom_object(
-            namespace=SETTINGS.namespace,
+        k8s_states = await k8s_crd.list_cluster_custom_object(
             group=SETTINGS.ku_group,
             version=SETTINGS.ku_api_version,
             plural=SETTINGS.ku_state_plural,
@@ -123,8 +131,7 @@ async def get_check_statuses() -> tuple[bool, list[str], list[SyntheticsState]]:
                 sleep_duration = 1
             log_exception(ex, f"rate limited, retrying after {sleep_duration} second(s)")
             await sleep(sleep_duration)
-            k8s_states = await k8s_crd.list_namespaced_custom_object(
-                namespace=SETTINGS.namespace,
+            k8s_states = await k8s_crd.list_cluster_custom_object(
                 group=SETTINGS.ku_group,
                 version=SETTINGS.ku_api_version,
                 plural=SETTINGS.ku_state_plural,

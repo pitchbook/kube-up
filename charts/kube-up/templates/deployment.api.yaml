@@ -35,8 +35,6 @@ spec:
 {{ toYaml . | indent 12 }}
 {{- end }}
           env:
-            - name: NAMESPACE
-              value: {{ .Release.Namespace | quote }}
             - name: LOG_LEVEL
               value: {{ .Values.api.config.logging.level | quote }}
             - name: EXTRA_METRICS_LABELS

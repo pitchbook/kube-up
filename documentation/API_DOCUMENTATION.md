@@ -128,6 +128,7 @@ their execution results.
   "ok": true,
   "errors": [],
   "podName": "test-check-28450123-abc12",
+  "namespace": "kube-up",
   "customMetrics": [
     {
       "name": "ttfb",
@@ -165,7 +166,8 @@ their execution results.
   - `job-name`: The Kubernetes Job name
   - `kube-up.pitchbook.com/owning-cronjob`: The KubeUpCheck name
   - `kube-up.pitchbook.com/timeout`: The timeout value (optional)
-- Pod must exist in the same namespace as the KubeUpCheck (configured via `NAMESPACE`)
+- The pod must exist; its namespace is taken from the request's `namespace` field when present, otherwise the pod is
+  located cluster-wide by name (or IP) and its own namespace is used
 
 #### Response
 
