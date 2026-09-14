@@ -21,7 +21,7 @@ class ResultsRequest(KubeUpBase):
 
         self._job_name = None
         self._check_name = None
-        self._namespace = None
+        self.namespace = None
 
     def _get_pod_details(self, pod: V1Pod) -> None:
         """
@@ -31,7 +31,7 @@ class ResultsRequest(KubeUpBase):
         """
 
         self.pod_name = pod.metadata.name
-        self._namespace = pod.metadata.namespace
+        self.namespace = pod.metadata.namespace
         self._job_name = pod.metadata.labels["job-name"]
         self._check_name = pod.metadata.labels["kube-up.pitchbook.com/owning-cronjob"]
         try:
@@ -82,16 +82,6 @@ class ResultsRequest(KubeUpBase):
         except IndexError as ex:
             log_exception(ex, "Pod not found", podIp=ip)
             raise KUNotFoundError(f"Pod IP '{ip}' not found") from ex
-
-    @property
-    def namespace(self) -> str | None:
-        """
-        Retrieve the namespace the check runs in
-
-        :return: namespace
-        """
-
-        return self._namespace
 
     @property
     def job_name(self) -> str | None:
