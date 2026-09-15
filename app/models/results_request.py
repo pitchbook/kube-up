@@ -1,5 +1,6 @@
 from kubernetes_asyncio.client import CoreV1Api, V1Pod
 from pydantic import Field
+from pydantic.json_schema import SkipJsonSchema
 
 from app.common.client import API_CLIENT
 from app.common.logs import log_exception
@@ -15,13 +16,14 @@ class ResultsRequest(KubeUpBase):
 
     pod_name: str | None = Field(None, description="Pod name (if null, will be retrieved with IP)", examples=[None])
     custom_metrics: list[SyntheticCustomMetric] = Field([], description="Custom metrics")
+    # Used internally only
+    namespace: SkipJsonSchema[str | None] = Field(None, exclude=True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self._job_name = None
         self._check_name = None
-        self.namespace = None
 
     def _get_pod_details(self, pod: V1Pod) -> None:
         """
