@@ -32,7 +32,8 @@ repos:
         args:
           - lock
           - --check
-        language: system
+        language: python
+        additional_dependencies: [uv]
         pass_filenames: false
       - id: ty
         name: ty
