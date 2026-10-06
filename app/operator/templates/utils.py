@@ -18,7 +18,7 @@ HOST_ENV = [
 
 
 def get_cronjob_template(
-    name: str, namespace: str, interval_min: str | int, suspend: bool, pod_spec: dict, extra_labels: dict
+    name: str, namespace: str, interval_min: int, suspend: bool, pod_spec: dict, extra_labels: dict
 ) -> dict:
     """
     Template out a Cronjob using provided values
@@ -38,6 +38,11 @@ def get_cronjob_template(
     cronjob["metadata"]["labels"].update(extra_labels)
     cronjob["spec"]["schedule"] = f"*/{interval_min} * * * *"
     cronjob["spec"]["suspend"] = suspend
+    # Set default job timeout to 2x job interval
+    if SETTINGS.job_timeout_multiplier:
+        cronjob["spec"]["jobTemplate"]["spec"]["activeDeadlineSeconds"] = (
+            interval_min * 60
+        ) * SETTINGS.job_timeout_multiplier
     cronjob["spec"]["jobTemplate"]["spec"]["template"]["spec"] = pod_spec
     cronjob["spec"]["jobTemplate"]["spec"]["template"]["spec"]["restartPolicy"] = "Never"
     cronjob["spec"]["jobTemplate"]["spec"]["template"]["metadata"]["labels"].update(extra_labels)

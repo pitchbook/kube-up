@@ -18,7 +18,7 @@ def timestr_to_seconds(timestr: str) -> int:
     return int(seconds)
 
 
-def timestr_to_minutes(timestr: str) -> str:
+def timestr_to_minutes(timestr: str) -> int:
     """
     Convert a Kubernetes time string to minutes
 
@@ -26,4 +26,4 @@ def timestr_to_minutes(timestr: str) -> str:
     :return: minutes
     """
 
-    return str(timestr_to_seconds(timestr) // 60)
+    return timestr_to_seconds(timestr) // 60

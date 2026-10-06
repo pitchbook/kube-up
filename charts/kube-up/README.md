@@ -38,27 +38,28 @@ The chart supports extensive configuration through the `values.yaml` file. Below
 | Parameter          | Description                | Default                     |
 | ------------------ | -------------------------- | --------------------------- |
 | `image.repository` | Container image repository | `ghcr.io/pitchbook/kube-up` |
-| `image.tag`        | Container image tag        | `v1.0.0`                    |
+| `image.tag`        | Container image tag        | `1.0.0`                     |
 
 ### Manager Configuration
 
 Configuration for the Kube Up Manager (operator component).
 
-| Parameter                            | Description                                         | Default     |
-| ------------------------------------ | --------------------------------------------------- | ----------- |
-| `manager.config.workerLimit`         | Maximum concurrent Kopf workers                     | `20`        |
-| `manager.config.logging.level`       | Logging level ("debug", "info", "warning", "error") | "info"      |
-| `manager.resources.requests`         | Resource requests                                   |             |
-| `manager.resources.limits`           | Resource limits                                     |             |
-| `manager.deployment.metricsPort`     | Metrics port for Prometheus                         | `8000`      |
-| `manager.deployment.healthPort`      | Health check port                                   | `8080`      |
-| `manager.deployment.protocol`        | Port protocol                                       | `TCP`       |
-| `manager.deployment.extraEnv`        | Additional environment variables                    | `[]`        |
-| `manager.deployment.annotations`     | Additional pod annotations                          | `{}`        |
-| `manager.serviceAccount.annotations` | Service account annotations                         | `{}`        |
-| `manager.service.type`               | Service type                                        | `ClusterIP` |
-| `manager.service.metricsPort`        | Service metrics port                                | `80`        |
-| `manager.service.healthPort`         | Service health port                                 | `8080`      |
+| Parameter                             | Description                                                                    | Default     |
+|---------------------------------------|--------------------------------------------------------------------------------|-------------|
+| `manager.config.workerLimit`          | Maximum concurrent Kopf workers                                                | `20`        |
+| `manager.config.jobTimeoutMultiplier` | Used to set Job `activeDeadlineSeconds` based on Check interval (0 to disable) | 2           |
+| `manager.config.logging.level`        | Logging level ("debug", "info", "warning", "error")                            | "info"      |
+| `manager.resources.requests`          | Resource requests                                                              |             |
+| `manager.resources.limits`            | Resource limits                                                                |             |
+| `manager.deployment.metricsPort`      | Metrics port for Prometheus                                                    | `8000`      |
+| `manager.deployment.healthPort`       | Health check port                                                              | `8080`      |
+| `manager.deployment.protocol`         | Port protocol                                                                  | `TCP`       |
+| `manager.deployment.extraEnv`         | Additional environment variables                                               | `[]`        |
+| `manager.deployment.annotations`      | Additional pod annotations                                                     | `{}`        |
+| `manager.serviceAccount.annotations`  | Service account annotations                                                    | `{}`        |
+| `manager.service.type`                | Service type                                                                   | `ClusterIP` |
+| `manager.service.metricsPort`         | Service metrics port                                                           | `80`        |
+| `manager.service.healthPort`          | Service health port                                                            | `8080`      |
 
 ### API Configuration
 

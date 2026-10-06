@@ -9,12 +9,13 @@ corresponding Kubernetes `CronJob`s and `KubeUpState`s.
 
 The Manager can be configured using the following environment variables:
 
-| Variable            | Default   | Description                                         |
-| ------------------- | --------- | --------------------------------------------------- |
-| `METRICS_PORT`      | `8000`    | Port to bind the metrics server to                  |
-| `LOG_LEVEL`         | "info"    | Logging level ("debug", "info", "warning", "error") |
-| `API_NAMESPACE`     | "kube-up" | Namespace the Kube Up API service runs in           |
-| `KOPF_WORKER_LIMIT` | `20`      | Kopf worker limit                                   |
+| Variable                 | Default   | Description                                                                    |
+|--------------------------|-----------|--------------------------------------------------------------------------------|
+| `METRICS_PORT`           | `8000`    | Port to bind the metrics server to                                             |
+| `LOG_LEVEL`              | "info"    | Logging level ("debug", "info", "warning", "error")                            |
+| `API_NAMESPACE`          | "kube-up" | Namespace the Kube Up API service runs in                                      |
+| `KOPF_WORKER_LIMIT`      | `20`      | Kopf worker limit                                                              |
+| `JOB_TIMEOUT_MULTIPLIER` | `2`       | Used to set Job `activeDeadlineSeconds` based on Check interval (0 to disable) |
 
 The Manager watches `KubeUpCheck` resources in **all namespaces**. The API resolves each check's namespace from the
 check pod itself (cluster-wide pod lookup), so check scripts only need to report `podName` and results.

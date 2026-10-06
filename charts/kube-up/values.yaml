@@ -8,6 +8,8 @@ manager:
     workerLimit: 20
     # Env var with KU API URL, added to pods automatically
     apiUrlEnvVar: KU_API_URL
+    # Used to set Job activeDeadlineSeconds based on Check interval (0 to disable)
+    jobTimeoutMultiplier: 2
 
     logging:
       level: info

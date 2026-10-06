@@ -50,6 +50,8 @@ spec:
               value: {{ .Values.manager.config.logging.level | quote }}
             - name: KOPF_WORKER_LIMIT
               value: {{ .Values.manager.config.workerLimit | quote }}
+            - name: JOB_TIMEOUT_MULTIPLIER
+              value: {{ .Values.manager.config.jobTimeoutMultiplier | quote }}
 {{- with .Values.manager.deployment.extraEnv }}
 {{ toYaml . | indent 12 }}
 {{- end }}

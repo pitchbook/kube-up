@@ -3,7 +3,7 @@ import kopf
 from app.common.timestrs import timestr_to_minutes, timestr_to_seconds
 
 
-def get_ku_args(spec: dict, name: str) -> tuple[str, bool, dict, dict]:
+def get_ku_args(spec: dict, name: str) -> tuple[int, bool, dict, dict]:
     """
     Get common KU args for cronjobs and status objects
 
