@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     api_service_name: str = Field("kube-up-api")
     api_namespace: str = Field("kube-up")
     api_url_env_var: str = Field("KU_API_URL")
+    job_timeout_multiplier: int = Field(2)
 
 
 SETTINGS = Settings()

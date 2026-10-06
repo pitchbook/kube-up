@@ -41,13 +41,13 @@ def test_timestr_to_seconds_ambiguous_suffix():
 @pytest.mark.parametrize(
     ("timestr", "expected"),
     [
-        ("60s", "1"),
-        ("120s", "2"),
-        ("30s", "0"),
-        ("1m", "1"),
-        ("5m", "5"),
-        ("1h", "60"),
-        ("2h", "120"),
+        ("60s", 1),
+        ("120s", 2),
+        ("30s", 0),
+        ("1m", 1),
+        ("5m", 5),
+        ("1h", 60),
+        ("2h", 120),
     ],
 )
 def test_timestr_to_minutes(timestr, expected):
