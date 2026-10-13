@@ -37,7 +37,6 @@ The `spec` section defines the desired state of the synthetic check.
 | `timeout`          | string  | **Yes**  | -       | Kubernetes duration string after which a check should be considered failed (e.g., "1m", "30s")      |
 | `podSpec`          | object  | **Yes**  | -       | Standard Kubernetes PodSpec defining the container(s) to run for the check                          |
 | `extraLabels`      | object  | No       | `{}`    | Map of additional labels to add to Prometheus metrics                                               |
-| `extraAnnotations` | object  | No       | `{}`    | Map of additional annotations to add to created resources                                           |
 | `suspend`          | boolean | No       | `false` | Whether the check is disabled/suspended                                                             |
 
 **runInterval** (required)
@@ -75,10 +74,6 @@ These labels appear on all Prometheus metrics for this check:
 - `kube_up_last_run{name, namespace, ...<extraLabels>}`
 - `kube_up_run_duration{name, namespace, ...<extraLabels>}`
 - `kube_up_custom_*{name, namespace, ...<extraLabels>, ...<customLabels>}`
-
-**extraAnnotations** (optional)
-
-Key-value map of additional annotations to add to the created `CronJob` resources.
 
 **suspend** (optional)
 
@@ -128,8 +123,6 @@ spec:
     owner: my-team
     service: my-service
     severity: "2"
-  extraAnnotations:
-    description: "Complete check for Example API"
   podSpec:
     containers:
       - name: health-check

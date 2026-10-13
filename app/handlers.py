@@ -147,9 +147,9 @@ async def create_ku_resources(spec: dict, name: str, namespace: str, body: dict,
 
     try:
         await _assert_name_is_unique(name, namespace)
-        interval, suspend, pod_spec, extra_labels = get_ku_args(spec, name)
+        interval, suspend, pod_spec, labels, extra_labels = get_ku_args(spec, name)
 
-        cronjob = get_cronjob_template(name, namespace, interval, suspend, pod_spec, extra_labels)
+        cronjob = get_cronjob_template(name, namespace, interval, suspend, pod_spec, labels)
         kopf.adopt(cronjob)
         logger.debug("created cronjob data", resourceName=name, cronjobData=str(cronjob))
 
@@ -161,7 +161,7 @@ async def create_ku_resources(spec: dict, name: str, namespace: str, body: dict,
         )
         logger.info("created cronjob resource", resourceName=name)
 
-        ku_state = get_ku_state_template(name, namespace, extra_labels)
+        ku_state = get_ku_state_template(name, namespace, labels, extra_labels)
         kopf.adopt(ku_state)
         logger.debug("created KU State data", resourceName=name, kuStateData=str(cronjob))
 
@@ -218,9 +218,9 @@ async def update_ku_resources(spec: dict, name: str, namespace: str, body: dict,
     logger.debug("updating KU resources", resourceName=name)
 
     try:
-        interval, suspend, pod_spec, extra_labels = get_ku_args(spec, name)
+        interval, suspend, pod_spec, labels, extra_labels = get_ku_args(spec, name)
 
-        cronjob = get_cronjob_template(name, namespace, interval, suspend, pod_spec, extra_labels)
+        cronjob = get_cronjob_template(name, namespace, interval, suspend, pod_spec, labels)
         kopf.adopt(cronjob)
         logger.debug("generated updated cronjob data", resourceName=name, cronjobData=str(cronjob))
 
@@ -254,7 +254,7 @@ async def update_ku_resources(spec: dict, name: str, namespace: str, body: dict,
                 plural=KU_STATE_PLURAL,
                 namespace=namespace,
             )
-            ku_state = get_ku_state_template(name, namespace, extra_labels, existing_ku_state)
+            ku_state = get_ku_state_template(name, namespace, labels, extra_labels, existing_ku_state)
             logger.debug("generated updated KU State data", resourceName=name, kuStateData=str(cronjob))
             await k8s_crd.patch_namespaced_custom_object(
                 name=name,
@@ -269,7 +269,7 @@ async def update_ku_resources(spec: dict, name: str, namespace: str, body: dict,
         except Exception as ex:
             if isinstance(ex, kubernetes_asyncio.client.exceptions.ApiException) and ex.status == 404:
                 logger.warn("KU State resource not found, attempting to create", resourceName=name)
-                ku_state = get_ku_state_template(name, namespace, extra_labels)
+                ku_state = get_ku_state_template(name, namespace, labels, extra_labels)
                 kopf.adopt(ku_state)
                 logger.debug("created KU State data", resourceName=name, kuStateData=str(cronjob))
                 await k8s_crd.create_namespaced_custom_object(

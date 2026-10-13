@@ -71,6 +71,11 @@ spec:
                 authoritativePod:
                   type: string
                   nullable: true
+                extraLabels:
+                  type: object
+                  description: Extra labels to add to Prometheus metrics
+                  additionalProperties:
+                    type: string
                 customMetrics:
                   type: array
                   items:

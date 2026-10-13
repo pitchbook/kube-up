@@ -18,7 +18,7 @@ HOST_ENV = [
 
 
 def get_cronjob_template(
-    name: str, namespace: str, interval_min: int, suspend: bool, pod_spec: dict, extra_labels: dict
+    name: str, namespace: str, interval_min: int, suspend: bool, pod_spec: dict, labels: dict
 ) -> dict:
     """
     Template out a Cronjob using provided values
@@ -28,14 +28,14 @@ def get_cronjob_template(
     :param interval_min: interval between runs in minutes (as string or int)
     :param suspend: whether the cronjob should be disabled
     :param pod_spec: pod spec
-    :param extra_labels: extra labels for metrics and Kubernetes objects
+    :param labels: extra labels for metrics and Kubernetes objects
     :return: Cronjob in dict form
     """
 
     cronjob = deepcopy(CRONJOB)
     cronjob["metadata"]["name"] = name
     cronjob["metadata"]["namespace"] = namespace
-    cronjob["metadata"]["labels"].update(extra_labels)
+    cronjob["metadata"]["labels"].update(labels)
     cronjob["spec"]["schedule"] = f"*/{interval_min} * * * *"
     cronjob["spec"]["suspend"] = suspend
     # Set default job timeout to 2x job interval
@@ -45,7 +45,7 @@ def get_cronjob_template(
         ) * SETTINGS.job_timeout_multiplier
     cronjob["spec"]["jobTemplate"]["spec"]["template"]["spec"] = pod_spec
     cronjob["spec"]["jobTemplate"]["spec"]["template"]["spec"]["restartPolicy"] = "Never"
-    cronjob["spec"]["jobTemplate"]["spec"]["template"]["metadata"]["labels"].update(extra_labels)
+    cronjob["spec"]["jobTemplate"]["spec"]["template"]["metadata"]["labels"].update(labels)
     if cronjob["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0].get("env"):
         cronjob["spec"]["jobTemplate"]["spec"]["template"]["spec"]["containers"][0]["env"].extend(HOST_ENV)
     else:
@@ -59,13 +59,16 @@ with open(os.path.join(BASE_DIR, "kustate.yaml")) as yaml_in:
     KU_STATE = yaml.safe_load(yaml_in)
 
 
-def get_ku_state_template(name: str, namespace: str, extra_labels: dict, ku_state: dict | None = None) -> dict:
+def get_ku_state_template(
+    name: str, namespace: str, labels: dict, extra_labels: dict, ku_state: dict | None = None
+) -> dict:
     """
     Template out a Kube Up State CRD using provided values
 
     :param name: cronjob name
     :param namespace: cronjob namespace
-    :param extra_labels: extra labels for metrics and Kubernetes objects
+    :param labels: labels for Kubernetes objects
+    :param extra_labels: extra labels for metrics
     :param ku_state: Kube Up State resource
     :return: Kube Up State in dict form
     """
@@ -74,7 +77,8 @@ def get_ku_state_template(name: str, namespace: str, extra_labels: dict, ku_stat
         ku_state = deepcopy(KU_STATE)
     ku_state["metadata"]["name"] = name
     ku_state["metadata"]["namespace"] = namespace
-    ku_state["metadata"]["labels"].update(extra_labels)
+    ku_state["metadata"]["labels"].update(labels)
+    ku_state["spec"].get("extraLabels", {}).update(extra_labels)
 
     return ku_state
 

@@ -10,8 +10,8 @@ spec:
   timeout: 30s
   # Extra labels that will be appended to metrics
   extraLabels:
-    owner: my-team
-    service: example-service
+    owner: my team
+    service: example service
     severity: "2"
   # Pod spec that will be run.  All normal pod spec is valid here.
   podSpec:
@@ -33,6 +33,6 @@ spec:
             # Report results
             curl -X POST ${KU_API_URL} \
               -H "Content-Type: application/json" \
-              -d "{\"podName\": \"${HOSTNAME}\", \"ok\": ${ok}, \"errors\": [], \"custom_metrics\": [{\"name\": \"someMetric\", \"value\": 1, \"labels\": [{\"name\": \"service\", \"value\": \"foo\"}]}, {\"name\": \"someMetric\", \"value\": 0, \"labels\": [{\"name\":\"service\", \"value\":\"bar\"}]}]}"
+              -d "{\"podName\": \"${HOSTNAME}\", \"ok\": ${ok}, \"errors\": [], \"custom_metrics\": [{\"name\": \"someMetric\", \"value\": 1, \"labels\": [{\"name\": \"component\", \"value\": \"foo\"}]}, {\"name\": \"someMetric\", \"value\": 0, \"labels\": [{\"name\":\"component\", \"value\":\"bar\"}]}]}"
     restartPolicy: Never
     terminationGracePeriodSeconds: 5

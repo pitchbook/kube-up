@@ -143,7 +143,9 @@ async def get_check_statuses() -> tuple[bool, list[str], list[SyntheticsState]]:
             state_model = SyntheticsState(
                 name=state["metadata"]["name"],
                 namespace=state["metadata"]["namespace"],
-                labels=SyntheticLabels(**filter_labels(state["metadata"]["labels"], SETTINGS.extra_metrics_labels)),
+                labels=SyntheticLabels(
+                    **filter_labels(state["spec"].get("extraLabels", {}), SETTINGS.extra_metrics_labels)
+                ),
                 ok=state["spec"]["ok"],
                 errors=state["spec"]["errors"],
                 # Ensure backwards compatibility with old States

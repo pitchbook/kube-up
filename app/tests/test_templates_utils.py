@@ -83,21 +83,21 @@ def test_get_cronjob_template_mutates_pod_spec_in_place():
 
 
 def test_get_ku_state_template_metadata():
-    result = get_ku_state_template("my-check", "default", {})
+    result = get_ku_state_template("my-check", "default", {}, {})
 
     assert result["metadata"]["name"] == "my-check"
     assert result["metadata"]["namespace"] == "default"
 
 
 def test_get_ku_state_template_managed_by_label():
-    result = get_ku_state_template("my-check", "default", {})
+    result = get_ku_state_template("my-check", "default", {}, {})
 
     assert result["metadata"]["labels"]["app.kubernetes.io/managed-by"] == "kube-up"
 
 
 def test_get_ku_state_template_extra_labels():
     extra = {"team": "platform"}
-    result = get_ku_state_template("my-check", "default", extra)
+    result = get_ku_state_template("my-check", "default", extra, {})
 
     assert result["metadata"]["labels"]["team"] == "platform"
 
@@ -116,7 +116,7 @@ def test_get_ku_state_template_uses_provided_ku_state():
             "customMetrics": [],
         },
     }
-    result = get_ku_state_template("new-name", "new-ns", {}, ku_state=existing)
+    result = get_ku_state_template("new-name", "new-ns", {}, {}, ku_state=existing)
 
     assert result["metadata"]["name"] == "new-name"
     assert result["metadata"]["namespace"] == "new-ns"
@@ -134,7 +134,7 @@ def test_get_ku_state_template_does_not_mutate_input():
     }
 
     original = copy.deepcopy(existing)
-    get_ku_state_template("new-name", "new-ns", {}, ku_state=existing)
+    get_ku_state_template("new-name", "new-ns", {}, {}, ku_state=existing)
 
     # The function modifies the provided ku_state in-place (by design), so we only check that *our* original deep-copy
     # is untouched.
