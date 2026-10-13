@@ -27,3 +27,15 @@ def get_ku_args(spec: dict, name: str) -> tuple[int, bool, dict, dict]:
     extra_labels["kube-up.pitchbook.com/timeout"] = str(timeout)
 
     return interval, suspend, pod_spec, extra_labels
+
+
+def get_extra_annotations(spec: dict) -> dict:
+    """
+    Get extra annotations from KUCheck spec. Applied to the KU State and exposed as metric labels
+    when listed in extraMetricsLabels (labels take precedence on key conflicts).
+
+    :param spec: KUCheck spec
+    :return: extra annotations with string values
+    """
+
+    return {str(k): str(v) for k, v in (spec.get("extraAnnotations") or {}).items()}

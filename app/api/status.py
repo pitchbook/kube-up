@@ -140,10 +140,13 @@ async def get_check_statuses() -> tuple[bool, list[str], list[SyntheticsState]]:
             raise
     for state in k8s_states["items"]:
         try:
+            metadata = state["metadata"]
+            # Labels take precedence over annotations
+            label_source = {**(metadata.get("annotations") or {}), **metadata["labels"]}
             state_model = SyntheticsState(
                 name=state["metadata"]["name"],
                 namespace=state["metadata"]["namespace"],
-                labels=SyntheticLabels(**filter_labels(state["metadata"]["labels"], SETTINGS.extra_metrics_labels)),
+                labels=SyntheticLabels(**filter_labels(label_source, SETTINGS.extra_metrics_labels)),
                 ok=state["spec"]["ok"],
                 errors=state["spec"]["errors"],
                 # Ensure backwards compatibility with old States

@@ -59,7 +59,16 @@ with open(os.path.join(BASE_DIR, "kustate.yaml")) as yaml_in:
     KU_STATE = yaml.safe_load(yaml_in)
 
 
-def get_ku_state_template(name: str, namespace: str, extra_labels: dict, ku_state: dict | None = None) -> dict:
+MANAGED_ANNOTATIONS_KEY = "kube-up.pitchbook.com/managed-annotations"
+
+
+def get_ku_state_template(
+    name: str,
+    namespace: str,
+    extra_labels: dict,
+    ku_state: dict | None = None,
+    extra_annotations: dict | None = None,
+) -> dict:
     """
     Template out a Kube Up State CRD using provided values
 
@@ -67,6 +76,7 @@ def get_ku_state_template(name: str, namespace: str, extra_labels: dict, ku_stat
     :param namespace: cronjob namespace
     :param extra_labels: extra labels for metrics and Kubernetes objects
     :param ku_state: Kube Up State resource
+    :param extra_annotations: extra annotations (usable as metric labels)
     :return: Kube Up State in dict form
     """
 
@@ -75,6 +85,19 @@ def get_ku_state_template(name: str, namespace: str, extra_labels: dict, ku_stat
     ku_state["metadata"]["name"] = name
     ku_state["metadata"]["namespace"] = namespace
     ku_state["metadata"]["labels"].update(extra_labels)
+
+    extra_annotations = extra_annotations or {}
+    annotations = ku_state["metadata"].setdefault("annotations", {})
+    previous = [k for k in (annotations.get(MANAGED_ANNOTATIONS_KEY) or "").split(",") if k]
+    # None removes the key on merge-patch
+    for key in previous:
+        if key not in extra_annotations:
+            annotations[key] = None
+    annotations.update(extra_annotations)
+    if extra_annotations:
+        annotations[MANAGED_ANNOTATIONS_KEY] = ",".join(sorted(extra_annotations))
+    elif previous:
+        annotations[MANAGED_ANNOTATIONS_KEY] = None
 
     return ku_state
 

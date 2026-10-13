@@ -139,3 +139,24 @@ def test_get_ku_state_template_does_not_mutate_input():
     # The function modifies the provided ku_state in-place (by design), so we only check that *our* original deep-copy
     # is untouched.
     assert original["metadata"]["name"] == "old"
+
+
+def test_get_ku_state_template_extra_annotations():
+    result = get_ku_state_template("c", "ns", {}, extra_annotations={"checkTitle": "A: b c"})
+
+    assert result["metadata"]["annotations"]["checkTitle"] == "A: b c"
+
+
+def test_get_ku_state_template_removes_stale_annotations():
+    existing = get_ku_state_template("c", "ns", {}, extra_annotations={"checkTitle": "x", "other": "y"})
+    result = get_ku_state_template("c", "ns", {}, existing, {"checkTitle": "z"})
+
+    assert result["metadata"]["annotations"]["checkTitle"] == "z"
+    assert result["metadata"]["annotations"]["other"] is None
+
+
+def test_get_extra_annotations():
+    from app.operator.args import get_extra_annotations
+
+    assert get_extra_annotations({}) == {}
+    assert get_extra_annotations({"extraAnnotations": {"a": 1}}) == {"a": "1"}

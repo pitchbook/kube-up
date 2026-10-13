@@ -349,7 +349,7 @@ Defines a synthetic check to run on a schedule.
 **Optional fields:**
 
 - `spec.extraLabels` - Labels for Prometheus metrics
-- `spec.extraAnnotations` - Annotations for resources
+- `spec.extraAnnotations` - Annotations stored on the `KubeUpState`; any key listed in `api.config.extraMetricsLabels` is exposed as a metric label (values may contain spaces/special characters, unlike labels). Labels win on key conflicts
 - `spec.suspend` - Disable check Cronjob without deleting
 
 ### `KubeUpState`
