@@ -5,6 +5,11 @@ on:
       - '**'
     tags-ignore:
       - '**'
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 jobs:
   python-lint:
