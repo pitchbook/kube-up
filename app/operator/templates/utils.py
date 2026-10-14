@@ -78,7 +78,7 @@ def get_ku_state_template(
     ku_state["metadata"]["name"] = name
     ku_state["metadata"]["namespace"] = namespace
     ku_state["metadata"]["labels"].update(labels)
-    ku_state["spec"].get("extraLabels", {}).update(extra_labels)
+    ku_state["spec"]["extraLabels"] = extra_labels
 
     return ku_state
 
