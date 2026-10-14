@@ -11,4 +11,5 @@ spec:
   lastRun: null
   runDuration: null
   authoritativePod: null
+  extraLabels: {}
   customMetrics: []

@@ -56,14 +56,11 @@ spec:
               description: Spec holds the desired state of the KubeUpCheck (from
                 the client).
               properties:
-                extraAnnotations:
-                  additionalProperties:
-                    type: string
-                  type: object
                 extraLabels:
+                  type: object
+                  description: Extra labels to add to Prometheus metrics
                   additionalProperties:
                     type: string
-                  type: object
                 podSpec:
                   description: PodSpec is a description of a pod.
                   properties:

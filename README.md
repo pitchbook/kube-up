@@ -125,8 +125,8 @@ spec:
   timeout: 30s
   # Extra labels that will be appended to metrics
   extraLabels:
-    owner: my-team
-    service: example-service
+    owner: my team
+    service: example service
     severity: "2"
   # Pod spec that will be run.  All normal pod spec is valid here.
   podSpec:
@@ -348,8 +348,7 @@ Defines a synthetic check to run on a schedule.
 
 **Optional fields:**
 
-- `spec.extraLabels` - Labels for Prometheus metrics
-- `spec.extraAnnotations` - Annotations for resources
+- `spec.extraLabels` - Extra labels for Prometheus metrics
 - `spec.suspend` - Disable check Cronjob without deleting
 
 ### `KubeUpState`
