@@ -56,7 +56,7 @@ def get_cronjob_template(
 
 KU_STATE_PLURAL = "kustates"
 with open(os.path.join(BASE_DIR, "kustate.yaml")) as yaml_in:
-    KU_STATE = yaml.safe_load(yaml_in)
+    KU_STATE: dict = yaml.safe_load(yaml_in)
 
 
 def get_ku_state_template(

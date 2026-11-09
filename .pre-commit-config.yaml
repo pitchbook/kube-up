@@ -1,6 +1,16 @@
+default_install_hook_types:
+  - pre-commit
+  - commit-msg
 repos:
   - repo: local
     hooks:
+      - id: check-dco
+        name: check-dco
+        entry: python
+        args: [ scripts/check-dco.py ]
+        language: python
+        stages: [ commit-msg ]
+        always_run: true
       - id: ruff-check
         name: ruff-check
         entry: ./.venv/bin/ruff
