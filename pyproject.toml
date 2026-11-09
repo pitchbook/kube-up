@@ -25,8 +25,8 @@ dependencies = [
 dev = [
     "pytest-cov==6.1.1",
     "pytest==9.0.3",
-    "ruff==0.16.0",
-    "ty==0.0.63",
+    "ruff==0.17.4",
+    "ty==0.0.99",
     "uv-sort==0.7.0",
 ]
 
@@ -100,7 +100,7 @@ lint.select = [
     "S",   # flake8-bandit
     "SIM", # flake8-simplify
     "T20", # flake8-print
-    "TCH", # flake8-type-checking
+    "TC",  # flake8-type-checking
     "UP",  # pyupgrade
     "W",   # pycodestyle
 ]
